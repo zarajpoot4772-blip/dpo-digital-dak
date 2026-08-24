@@ -44,23 +44,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
       if (!document.rows[0]) throw new Error('Original document not found');
 
-      const approvalMode = String(body.signature_mode || 'STAMP_ONLY').toUpperCase();
-      if (approvalMode !== 'STAMP_ONLY') throw new Error('Only official stamp approval is available');
+      const approvalMode = String(body.signature_mode || 'SIGNATURE_ONLY').toUpperCase();
+      if (!['SIGNATURE_ONLY', 'STAMP_ONLY'].includes(approvalMode)) throw new Error('Choose Signature only or Official stamp only');
 
-      const configuredStamp = await db.query<any>(
+      const configuredAsset = await db.query<any>(
         `SELECT stored_filename FROM user_signatures
-         WHERE user_id=$1 AND asset_type='STAMP' AND active=true
+         WHERE user_id=$1 AND asset_type=$2 AND active=true
          ORDER BY id DESC LIMIT 1`,
-        [user.id]
+        [user.id, approvalMode === 'SIGNATURE_ONLY' ? 'SIGNATURE' : 'STAMP']
       );
-      if (!configuredStamp.rows[0]) throw new Error('DPO official stamp is not configured. Ask Admin to upload it first');
+      if (!configuredAsset.rows[0]) {
+        throw new Error(approvalMode === 'SIGNATURE_ONLY'
+          ? 'DPO signature is not configured. Ask Admin to upload it first'
+          : 'DPO official stamp is not configured. Ask Admin to upload it first');
+      }
 
       const signaturePage = Number(body.signature_page);
       const signatureX = Number(body.signature_x);
       const signatureY = Number(body.signature_y);
-      if (!Number.isInteger(signaturePage) || signaturePage < 1) throw new Error('Valid stamp page is required');
+      if (!Number.isInteger(signaturePage) || signaturePage < 1) throw new Error('Valid approval page is required');
       if (!Number.isFinite(signatureX) || !Number.isFinite(signatureY) || signatureX < 0 || signatureX > 1 || signatureY < 0 || signatureY > 1) {
-        throw new Error('Valid stamp position is required');
+        throw new Error('Valid approval position is required');
       }
 
       const reference = `DPO-APR-${new Date().getFullYear()}-${String(dakId).padStart(6, '0')}`;
@@ -71,7 +75,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         document.rows[0].file_type,
         output,
         {
-          stampPath: signatureStoragePath(configuredStamp.rows[0].stored_filename),
+          signaturePath: approvalMode === 'SIGNATURE_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
+          stampPath: approvalMode === 'STAMP_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
           remarks,
           page: signaturePage,
           x: signatureX,

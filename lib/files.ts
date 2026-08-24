@@ -114,7 +114,7 @@ export async function saveDpoSignature(file:File,userId:number,assetType:'SIGNAT
 
 export function signatureStoragePath(name:string){return path.join(process.cwd(),'storage','signatures',path.basename(name));}
 
-export async function approvedPdf(sourcePath:string,mime:string,output:string,info:{stampPath:string;remarks?:string;page:number;x:number;y:number}){
+export async function approvedPdf(sourcePath:string,mime:string,output:string,info:{signaturePath?:string;stampPath?:string;remarks?:string;page:number;x:number;y:number}){
  let pdf:PDFDocument;
  if(mime==='application/pdf')pdf=await PDFDocument.load(await fs.readFile(sourcePath));
  else{
@@ -124,25 +124,27 @@ export async function approvedPdf(sourcePath:string,mime:string,output:string,in
   p.drawImage(img,{x:(595-img.width*scale)/2,y:(842-img.height*scale)/2,width:img.width*scale,height:img.height*scale});
  }
  const pages=pdf.getPages();
- if(!Number.isInteger(info.page)||info.page<1||info.page>pages.length)throw new Error(`Stamp page must be between 1 and ${pages.length}`);
- if(!Number.isFinite(info.x)||!Number.isFinite(info.y)||info.x<0||info.x>1||info.y<0||info.y>1)throw new Error('Invalid stamp position');
+ if(!Number.isInteger(info.page)||info.page<1||info.page>pages.length)throw new Error(`Approval page must be between 1 and ${pages.length}`);
+ if(!Number.isFinite(info.x)||!Number.isFinite(info.y)||info.x<0||info.x>1||info.y<0||info.y>1)throw new Error('Invalid approval position');
+ if(Boolean(info.signaturePath)===Boolean(info.stampPath))throw new Error('Choose exactly one approval asset');
  const page=pages[info.page-1],{width:pw,height:ph}=page.getSize();
- const stamp=await pdf.embedPng(await fs.readFile(info.stampPath));
- const stampSize=Math.min(120,pw*.22);
+ const assetPath=info.signaturePath||info.stampPath!;
+ const asset=await pdf.embedPng(await fs.readFile(assetPath));
+ const assetSize=info.stampPath?Math.min(120,pw*.22):Math.min(145,pw*.24);
  const remarks=String(info.remarks||'').trim();
  const remarksSpace=remarks?17:0;
- const x=Math.min(Math.max(12,info.x*pw),pw-stampSize-12);
- const groupY=Math.min(Math.max(12,ph-(info.y*ph)-stampSize),ph-stampSize-12-remarksSpace);
- const ratio=Math.min(stampSize/stamp.width,stampSize/stamp.height);
- const sw=stamp.width*ratio,sh=stamp.height*ratio;
- page.drawImage(stamp,{x:x+(stampSize-sw)/2,y:groupY+(stampSize-sh)/2,width:sw,height:sh});
+ const x=Math.min(Math.max(12,info.x*pw),pw-assetSize-12);
+ const groupY=Math.min(Math.max(12,ph-(info.y*ph)-assetSize),ph-assetSize-12-remarksSpace);
+ const ratio=Math.min(assetSize/asset.width,assetSize/asset.height);
+ const aw=asset.width*ratio,ah=asset.height*ratio;
+ page.drawImage(asset,{x:x+(assetSize-aw)/2,y:groupY+(assetSize-ah)/2,width:aw,height:ah});
  if(remarks){
   const font=await pdf.embedFont(StandardFonts.Helvetica);const size=8;
   const prefix='Remarks: ';let text=(prefix+remarks).replace(/[^\x20-\x7E]/g,'?');
-  const maxWidth=Math.max(210,Math.min(pw-x-12,stampSize));
+  const maxWidth=Math.max(120,Math.min(pw-x-12,assetSize));
   while(text.length>prefix.length&&font.widthOfTextAtSize(text,size)>maxWidth)text=text.slice(0,-1);
   if(text.length<prefix.length+remarks.length)text=text.trimEnd()+'...';
-  page.drawText(text,{x,y:groupY+stampSize+5,size,font,color:rgb(.08,.12,.1)});
+  page.drawText(text,{x,y:groupY+assetSize+5,size,font,color:rgb(.08,.12,.1)});
  }
  const bytes=await pdf.save();await fs.writeFile(output,bytes,{flag:'wx'});
  return {size:bytes.length,sha:crypto.createHash('sha256').update(bytes).digest('hex'),pageCount:pages.length};
