@@ -32,7 +32,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 3. Assigned DPO/officer receives an in-app notification and sees the item in the inbox.
 4. Opening creates an audit action and moves `PENDING → OPENED`.
 5. DPO may approve or reject; DPO/officers may forward and authorized users may record remarks.
-6. Admin securely uploads the authorized DPO signature PNG and optional official stamp PNG. During approval, DPO selects **Signature only** or **Signature + official stamp**, chooses the PDF page and clicks the desired position. The server creates a separate approved PDF without adding an extra approval text box. These image assets are workflow controls, **not a PKI digital signature**.
+6. Admin securely uploads the authorized DPO official stamp PNG. During approval, DPO uses **Official stamp only**, chooses the PDF page and clicks the desired position. The server creates a separate stamped approval PDF without adding an extra approval text box. The image stamp is a workflow control, **not a PKI digital signature**.
 7. Every action records actor, role (via user relation), old/new state, timestamp, IP, user agent and any supplied remarks. Remarks are optional for approve, reject, forward and archive; the dedicated Add Remarks action requires text.
 8. Original and derived versions remain available through an authenticated authorization route.
 9. Admin can create office branches and provision a dedicated Branch Head login in one step.

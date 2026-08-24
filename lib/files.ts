@@ -114,7 +114,7 @@ export async function saveDpoSignature(file:File,userId:number,assetType:'SIGNAT
 
 export function signatureStoragePath(name:string){return path.join(process.cwd(),'storage','signatures',path.basename(name));}
 
-export async function approvedPdf(sourcePath:string,mime:string,output:string,info:{signaturePath:string;stampPath?:string;remarks?:string;page:number;x:number;y:number}){
+export async function approvedPdf(sourcePath:string,mime:string,output:string,info:{stampPath:string;remarks?:string;page:number;x:number;y:number}){
  let pdf:PDFDocument;
  if(mime==='application/pdf')pdf=await PDFDocument.load(await fs.readFile(sourcePath));
  else{
@@ -124,37 +124,25 @@ export async function approvedPdf(sourcePath:string,mime:string,output:string,in
   p.drawImage(img,{x:(595-img.width*scale)/2,y:(842-img.height*scale)/2,width:img.width*scale,height:img.height*scale});
  }
  const pages=pdf.getPages();
- if(!Number.isInteger(info.page)||info.page<1||info.page>pages.length)throw new Error(`Signature page must be between 1 and ${pages.length}`);
- if(!Number.isFinite(info.x)||!Number.isFinite(info.y)||info.x<0||info.x>1||info.y<0||info.y>1)throw new Error('Invalid signature position');
+ if(!Number.isInteger(info.page)||info.page<1||info.page>pages.length)throw new Error(`Stamp page must be between 1 and ${pages.length}`);
+ if(!Number.isFinite(info.x)||!Number.isFinite(info.y)||info.x<0||info.x>1||info.y<0||info.y>1)throw new Error('Invalid stamp position');
  const page=pages[info.page-1],{width:pw,height:ph}=page.getSize();
- const sig=await pdf.embedPng(await fs.readFile(info.signaturePath));
- const sigWidth=Math.min(145,pw*.24),sigHeight=sig.height*(sigWidth/sig.width);
- let stampImage:any=null,stampSize=0;
- if(info.stampPath){stampImage=await pdf.embedPng(await fs.readFile(info.stampPath));stampSize=Math.min(92,pw*.16);}
+ const stamp=await pdf.embedPng(await fs.readFile(info.stampPath));
+ const stampSize=Math.min(120,pw*.22);
  const remarks=String(info.remarks||'').trim();
  const remarksSpace=remarks?17:0;
- const groupHeight=Math.max(sigHeight,stampSize);
- const x=Math.min(Math.max(12,info.x*pw),pw-sigWidth-12);
- const groupY=Math.min(Math.max(12,ph-(info.y*ph)-groupHeight),ph-groupHeight-12-remarksSpace);
- const sigY=groupY+(groupHeight-sigHeight)/2;
- page.drawImage(sig,{x,y:sigY,width:sigWidth,height:sigHeight});
- let groupLeft=x,groupRight=x+sigWidth;
- if(stampImage){
-  let stampX=x+sigWidth+8;
-  if(stampX+stampSize>pw-12)stampX=Math.max(12,x-stampSize-8);
-  const stampY=groupY+(groupHeight-stampSize)/2;
-  const ratio=Math.min(stampSize/stampImage.width,stampSize/stampImage.height);
-  const sw=stampImage.width*ratio,sh=stampImage.height*ratio;
-  page.drawImage(stampImage,{x:stampX+(stampSize-sw)/2,y:stampY+(stampSize-sh)/2,width:sw,height:sh});
-  groupLeft=Math.min(groupLeft,stampX);groupRight=Math.max(groupRight,stampX+stampSize);
- }
+ const x=Math.min(Math.max(12,info.x*pw),pw-stampSize-12);
+ const groupY=Math.min(Math.max(12,ph-(info.y*ph)-stampSize),ph-stampSize-12-remarksSpace);
+ const ratio=Math.min(stampSize/stamp.width,stampSize/stamp.height);
+ const sw=stamp.width*ratio,sh=stamp.height*ratio;
+ page.drawImage(stamp,{x:x+(stampSize-sw)/2,y:groupY+(stampSize-sh)/2,width:sw,height:sh});
  if(remarks){
   const font=await pdf.embedFont(StandardFonts.Helvetica);const size=8;
   const prefix='Remarks: ';let text=(prefix+remarks).replace(/[^\x20-\x7E]/g,'?');
-  const maxWidth=Math.min(pw-groupLeft-12,Math.max(210,groupRight-groupLeft));
-  while(text.length>4&&font.widthOfTextAtSize(text,size)>maxWidth)text=text.slice(0,-1);
+  const maxWidth=Math.max(210,Math.min(pw-x-12,stampSize));
+  while(text.length>prefix.length&&font.widthOfTextAtSize(text,size)>maxWidth)text=text.slice(0,-1);
   if(text.length<prefix.length+remarks.length)text=text.trimEnd()+'...';
-  page.drawText(text,{x:groupLeft,y:groupY+groupHeight+5,size,font,color:rgb(.08,.12,.1)});
+  page.drawText(text,{x,y:groupY+stampSize+5,size,font,color:rgb(.08,.12,.1)});
  }
  const bytes=await pdf.save();await fs.writeFile(output,bytes,{flag:'wx'});
  return {size:bytes.length,sha:crypto.createHash('sha256').update(bytes).digest('hex'),pageCount:pages.length};
