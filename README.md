@@ -1,0 +1,86 @@
+# DPO Digital Dak & File Management System
+
+A secure full-workflow MVP for official Dak registration, protected document viewing, controlled approval/rejection, forwarding, remarks, notifications and permanent audit history.
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+`npm run dev` uses Windows-compatible atomic database snapshots at `data/pglite-data.tar` plus private files under `storage/`. The snapshot is loaded automatically after restart. The Arena-only `npm run preview` command uses temporary in-memory data and should not be used for a local office installation.
+
+### Prototype accounts
+
+| Role | Username | Password |
+|---|---|---|
+| Admin | `admin` | `Admin@12345` |
+| DPO | `dpo` | `Dpo@12345` |
+| Clerk | `clerk` | `Clerk@12345` |
+| Officer | `sp.inv` | `Officer@12345` |
+| Branch Head | `head.ops` | `Branch@12345` |
+
+Change all seeded passwords before any controlled pilot. Prototype data is stored under `data/`; original and derived files are under private `storage/` directories and never served as static files.
+
+## Implemented workflow
+
+1. Clerk/Admin/Branch Head registers Dak. Up to 50 PDF/DOCX/JPG/PNG files may be selected together; each becomes an independent Dak with a unique auto diary number and filename-based subject. Entry fields and attachment remain optional, while branch, sender and department are derived from the logged-in user.
+2. Server validates type and 20 MB limit, computes SHA-256 and stores an immutable original outside `public/`. DOCX originals are preserved and a separate PDF preview is generated through installed Microsoft Word or LibreOffice so tables, images, borders, fonts and page layout are retained. Local DOCX conversion requires one of those applications; Arena's temporary demo alone uses a basic text fallback.
+3. Assigned DPO/officer receives an in-app notification and sees the item in the inbox.
+4. Opening creates an audit action and moves `PENDING → OPENED`.
+5. DPO may approve or reject; DPO/officers may forward and authorized users may record remarks.
+6. Admin securely uploads the authorized DPO signature PNG and optional official stamp PNG. During approval, DPO selects **Signature only** or **Signature + official stamp**, chooses the PDF page and clicks the desired position. The server creates a separate approved PDF without adding an extra approval text box. These image assets are workflow controls, **not a PKI digital signature**.
+7. Every action records actor, role (via user relation), old/new state, timestamp, IP, user agent and any supplied remarks. Remarks are optional for approve, reject, forward and archive; the dedicated Add Remarks action requires text.
+8. Original and derived versions remain available through an authenticated authorization route.
+9. Admin can create office branches and provision a dedicated Branch Head login in one step.
+10. Branch Heads can upload and track only their own branch Dak; submissions are automatically assigned to DPO and approval/signing remains unavailable to Branch Heads.
+
+## Security controls in this MVP
+
+- Server-side role checks on every sensitive API (UI hiding is not relied upon)
+- HTTP-only, SameSite=Strict, 8-hour expiring opaque sessions
+- Origin validation on mutations (CSRF defense) and secure-cookie mode in production
+- bcrypt cost-12 password hashing
+- Basic 5-failure / 15-minute login throttling for the local process
+- Parameterized PostgreSQL queries
+- Strict upload MIME/size allowlist, randomized server-side names and basename normalization
+- Private file storage with authenticated, scoped streaming
+- SHA-256 integrity hash for each version
+- Security response headers
+- No hard-delete API for Dak, documents, actions or signatures
+- Controlled, server-side status transitions
+
+## Storage and PostgreSQL
+
+The runnable local prototype uses **PGlite**, an embedded PostgreSQL engine, so no database service is required. The schema and SQL use PostgreSQL types and constraints. For production, deploy PostgreSQL 16+ and replace the `PGlite` adapter in `lib/db.ts` with a pooled `pg` adapter; SQL and application query boundaries are already isolated there.
+
+PGlite is suitable for a single-process prototype only. Do **not** use it for multi-user production deployment.
+
+## Production deployment gate
+
+Before office use:
+
+- Deploy on hardened Linux/Windows server behind HTTPS reverse proxy on office LAN.
+- Move to managed PostgreSQL with least-privilege DB user, encrypted backup and tested restore.
+- Store documents on encrypted volume; apply OS ACLs and immutable/WORM retention where policy requires.
+- Replace in-process throttle with shared account/IP lockout and add forced password change, password policy and 2FA.
+- Add malware scanning and file-content signature verification to upload quarantine.
+- Add CSRF tokens as defense-in-depth and a strict Content Security Policy after deployment host is known.
+- Integrate department-approved PKI/HSM/token service before calling any output a legal digital signature.
+- Obtain departmental retention, classification, backup, DR and audit-log export policies.
+- Conduct threat modelling, SAST/DAST, dependency scanning, penetration testing and user acceptance testing.
+- Integrate NTP/SIEM and maintain administrative audit events for user/settings changes.
+
+## Commands
+
+```bash
+npm run dev       # local development
+npm run typecheck # TypeScript checks
+npm run build     # production build validation
+npm start         # run built app
+```
+
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for workflow, authorization matrix, state machine and deployment design.

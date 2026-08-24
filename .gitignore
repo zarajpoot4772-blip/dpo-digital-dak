@@ -1,0 +1,32 @@
+# Dependencies and generated builds
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.turbo/
+.vercel/
+
+# Local configuration and secrets
+.env*
+!.env.example
+*.pem
+*.key
+*.pfx
+
+# Local prototype database and private files
+data/
+storage/originals/*
+storage/derived/*
+storage/signatures/*
+!storage/originals/.gitkeep
+!storage/derived/.gitkeep
+!storage/signatures/.gitkeep
+
+# Tool/editor/system files
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+tsconfig.tsbuildinfo
