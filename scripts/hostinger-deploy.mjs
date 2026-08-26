@@ -91,22 +91,28 @@ async function uploadArchive(archivePath, username) {
   locationUrl.searchParams.set('override', 'true');
   const location = locationUrl.toString();
   console.log(`TUS upload created: ${createStatus}; upload host ${new URL(uploadEndpoint).host}; location host ${locationUrl.host}; location path ${locationUrl.pathname}`);
-  const send = await execFileAsync('curl', [
-    '--http1.1', '-sS', '-i', '-X', 'PATCH', location,
-    '-H', `X-Auth: ${upload.auth_key}`,
-    '-H', `X-Auth-Rest: ${upload.rest_auth_key}`,
-    '-H', 'Tus-Resumable: 1.0.0',
-    '-H', 'Content-Type: application/offset+octet-stream',
-    '-H', 'Upload-Offset: 0',
-    '-H', `Content-Length: ${archive.byteLength}`,
-    '--data-binary', `@${archivePath}`
-  ], { maxBuffer: 1024 * 1024 });
-  const sendStatus = [...send.stdout.matchAll(/HTTP\/\S+\s+(\d+)/g)].pop()?.[1];
-  if (sendStatus !== '204') {
-    const body = send.stdout.split(/\r?\n\r?\n/).pop()?.slice(0, 240) || '';
-    throw new Error(`Hostinger file upload failed (${sendStatus || 'unknown'}): ${body}`);
+  const patchTargets = [...new Set([location, uploadEndpoint])];
+  let lastFailure = 'unknown';
+  for (const patchTarget of patchTargets) {
+    const send = await execFileAsync('curl', [
+      '--http1.1', '-sS', '-i', '-X', 'PATCH', patchTarget,
+      '-H', `X-Auth: ${upload.auth_key}`,
+      '-H', `X-Auth-Rest: ${upload.rest_auth_key}`,
+      '-H', 'Tus-Resumable: 1.0.0',
+      '-H', 'Content-Type: application/offset+octet-stream',
+      '-H', 'Upload-Offset: 0',
+      '-H', `Content-Length: ${archive.byteLength}`,
+      '--data-binary', `@${archivePath}`
+    ], { maxBuffer: 1024 * 1024 });
+    const sendStatus = [...send.stdout.matchAll(/HTTP\/\S+\s+(\d+)/g)].pop()?.[1];
+    if (sendStatus === '204') {
+      console.log(`Uploaded ${ARCHIVE_NAME} (${archive.byteLength} bytes).`);
+      return;
+    }
+    lastFailure = `${sendStatus || 'unknown'} at ${new URL(patchTarget).pathname}`;
+    console.log(`TUS data upload attempt failed (${lastFailure}); trying the alternate upload URL.`);
   }
-  console.log(`Uploaded ${ARCHIVE_NAME} (${archive.byteLength} bytes).`);
+  throw new Error(`Hostinger file upload failed (${lastFailure}).`);
 }
 
 async function startBuild(username) {
