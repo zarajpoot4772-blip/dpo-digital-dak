@@ -100,3 +100,156 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .detail-body{position:static;inset:auto;width:100%;height:auto;display:block;min-height:0;overflow:auto}.viewer-area{height:auto;min-height:0;background:transparent;padding:8px;overflow-x:hidden;overflow-y:auto}.action-panel{display:none;position:static;height:auto;padding:0;border-left:0}
  .viewer-area:has(.document-reader)>.viewer-tools,.viewer-area:has(.document-reader)>.document-reader{width:100%;max-width:100%}.viewer-area:has(.document-reader)>.document-reader{height:calc(100dvh - 205px);min-height:360px}
 }
+
+/* Final review layout: the protected document owns the full left portrait stage;
+   Dak title, tabs and workflow actions stay together in one right rail. */
+@media (min-width:761px){
+  .detail{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) clamp(300px,26vw,360px);
+    grid-template-rows:auto auto minmax(0,1fr);
+    width:min(1500px,96vw);
+    height:96vh;
+    overflow:hidden;
+    background:#f4f6f5;
+  }
+  .detail > .detail-head{
+    grid-column:2;
+    grid-row:1;
+    position:static;
+    width:auto;
+    height:auto;
+    min-width:0;
+    padding:14px 15px 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:10px;
+    overflow:visible;
+    border-left:1px solid #dbe2de;
+    border-bottom:1px solid #e0e5e2;
+    background:#fff;
+  }
+  .detail > .detail-head > div:first-child{width:100%;min-width:0;flex:0 0 auto}
+  .detail > .detail-head h2{
+    font-size:19px;
+    line-height:1.2;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
+    overflow-wrap:anywhere;
+    margin:3px 0 5px;
+  }
+  .detail > .detail-head small{font-size:10px;white-space:normal;overflow-wrap:anywhere}
+  .detail > .detail-head-actions{
+    width:100%;
+    min-width:0;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr)) 32px;
+    gap:5px;
+    align-items:stretch;
+  }
+  .detail > .detail-head-actions .quick-approve,
+  .detail > .detail-head-actions .quick-reject,
+  .detail > .detail-head-actions .quick-forward{
+    min-width:0;
+    padding:8px 4px;
+    font-size:9px;
+    line-height:1.15;
+    white-space:normal;
+  }
+  .detail > .detail-head-actions .close{width:32px;height:32px;font-size:18px}
+
+  .detail > .detail-tabs{
+    grid-column:2;
+    grid-row:2;
+    position:static;
+    width:auto;
+    height:auto;
+    min-width:0;
+    min-height:0;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:4px;
+    padding:8px 10px 9px;
+    overflow:visible;
+    white-space:normal;
+    border-left:1px solid #dbe2de;
+    border-bottom:1px solid #dfe5e2;
+    background:#fff;
+  }
+  .detail > .detail-tabs > button{min-width:0;padding:8px 4px;font-size:10px;white-space:normal}
+  .detail > .detail-tabs > .record-navigation{
+    grid-column:1 / -1;
+    width:100%;
+    margin:2px 0 0;
+    min-width:0;
+    justify-content:center;
+    gap:6px;
+  }
+  .detail > .detail-tabs > .record-navigation button{min-width:82px;width:auto;height:28px;padding:4px 7px;font-size:9px}
+  .detail > .detail-tabs > .record-navigation span{min-width:44px;font-size:9px}
+
+  .detail > .detail-body{display:contents}
+  .detail > .detail-body > .viewer-area{
+    grid-column:1;
+    grid-row:1 / 4;
+    width:auto;
+    height:auto;
+    min-width:0;
+    min-height:0;
+    overflow:auto;
+    padding:12px 16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    background:#56605c;
+  }
+  .detail > .detail-body > .viewer-area:has(.document-reader){align-items:center}
+  .detail > .detail-body > .viewer-area > .viewer-tools{
+    width:min(100%,820px);
+    height:auto;
+    min-height:38px;
+    flex:0 0 auto;
+  }
+  .detail > .detail-body > .viewer-area > .document-reader{
+    width:min(100%,820px);
+    max-width:820px;
+    height:auto;
+    min-height:0;
+    flex:1 1 auto;
+    margin:0 auto;
+    padding:10px 0 12px;
+    overflow:auto;
+    background:#56605c;
+    border-radius:0;
+  }
+  .detail > .detail-body > .viewer-area > .document-reader .document-pages{
+    width:min(100%,720px,calc((100dvh - 72px) * .707));
+    max-width:720px;
+    margin:0 auto;
+  }
+  .detail > .detail-body > .viewer-area > .document-reader .document-page{width:100%}
+  .detail > .detail-body > .viewer-area > .image-view{
+    width:min(100%,720px);
+    height:auto;
+    min-height:0;
+    flex:1 1 auto;
+    margin:0 auto;
+    background:#56605c;
+  }
+  .detail > .detail-body > .viewer-area > .image-view img{max-width:100%;max-height:100%;object-fit:contain}
+  .detail > .detail-body > .viewer-area > .no-document{width:min(100%,820px);height:100%;min-height:0}
+  .detail > .detail-body > .action-panel{
+    grid-column:2;
+    grid-row:3;
+    width:auto;
+    height:auto;
+    min-width:0;
+    min-height:0;
+    overflow:auto;
+    padding:18px 15px 22px;
+    background:#fff;
+    border-left:1px solid #dbe2de;
+  }
+}
