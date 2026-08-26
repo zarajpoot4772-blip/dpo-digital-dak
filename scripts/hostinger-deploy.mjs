@@ -90,8 +90,9 @@ async function uploadArchive(archivePath, username) {
     headers: { ...authHeaders, 'Content-Type': 'application/offset+octet-stream' },
     body: archive
   });
+  const sendText = await send.text();
   if (!send.ok && send.status !== 204) {
-    throw new Error(`Hostinger file upload failed (${send.status}).`);
+    throw new Error(`Hostinger file upload failed (${send.status}): ${sendText.slice(0, 240)}`);
   }
   console.log(`Uploaded ${ARCHIVE_NAME} (${archive.byteLength} bytes).`);
 }
