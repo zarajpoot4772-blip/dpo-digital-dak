@@ -86,6 +86,7 @@ async function uploadArchive(archivePath, username) {
   }
   const locationHeader = create.stdout.match(/^Location:\s*(.+)$/im)?.[1]?.trim();
   const location = locationHeader ? new URL(locationHeader, upload.url).toString() : uploadEndpoint;
+  console.log(`TUS upload created: ${createStatus}; upload host ${new URL(uploadEndpoint).host}; location host ${new URL(location).host}; location path ${new URL(location).pathname}`);
   const send = await execFileAsync('curl', [
     '--http1.1', '-sS', '-i', '-X', 'PATCH', location,
     '-H', `X-Auth: ${upload.auth_key}`,
