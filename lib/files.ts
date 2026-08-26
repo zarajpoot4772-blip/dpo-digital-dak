@@ -65,8 +65,10 @@ async function convertDocxToPdf(bytes:Buffer,sourcePath:string,output:string){
  return queueOfficeConversion(async()=>{
   const office=await tryMicrosoftWord(sourcePath,output)||await tryLibreOffice(sourcePath,output);
   if(office)return office;
-  if(process.env.PGLITE_MEMORY==='1')return convertDocxTextFallback(bytes,output);
-  throw new Error('Exact Word conversion requires Microsoft Word or free LibreOffice. Install LibreOffice and restart the system');
+  // Hostinger and other Linux web-app environments may not have an Office
+  // renderer installed. Keep the immutable DOCX and create a dependency-free
+  // text-preserving PDF preview instead of rejecting the upload.
+  return convertDocxTextFallback(bytes,output);
  });
 }
 
