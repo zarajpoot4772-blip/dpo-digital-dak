@@ -85,8 +85,12 @@ async function uploadArchive(archivePath, username) {
     throw new Error(`Hostinger file upload could not be created (${createStatus || 'unknown'}).`);
   }
   const locationHeader = create.stdout.match(/^Location:\s*(.+)$/im)?.[1]?.trim();
-  const location = locationHeader ? new URL(locationHeader, upload.url).toString() : uploadEndpoint;
-  console.log(`TUS upload created: ${createStatus}; upload host ${new URL(uploadEndpoint).host}; location host ${new URL(location).host}; location path ${new URL(location).pathname}`);
+  const locationUrl = new URL(locationHeader ? new URL(locationHeader, upload.url) : uploadEndpoint);
+  // Hostinger's TUS gateway requires the override flag on both the create and
+  // data requests when replacing the same archive on repeated deployments.
+  locationUrl.searchParams.set('override', 'true');
+  const location = locationUrl.toString();
+  console.log(`TUS upload created: ${createStatus}; upload host ${new URL(uploadEndpoint).host}; location host ${locationUrl.host}; location path ${locationUrl.pathname}`);
   const send = await execFileAsync('curl', [
     '--http1.1', '-sS', '-i', '-X', 'PATCH', location,
     '-H', `X-Auth: ${upload.auth_key}`,
