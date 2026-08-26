@@ -72,27 +72,34 @@ async function uploadArchive(archivePath, username) {
 
   const archive = await readFile(archivePath);
   const uploadEndpoint = `${upload.url.replace(/\/$/, '')}/${ARCHIVE_NAME}?override=true`;
-  const authHeaders = {
-    'X-Auth': upload.auth_key,
-    'X-Auth-Rest': upload.rest_auth_key,
-    'Tus-Resumable': '1.0.0',
-    'Upload-Length': String(archive.byteLength),
-    'Upload-Offset': '0'
-  };
-  const create = await fetch(uploadEndpoint, { method: 'POST', headers: authHeaders });
-  if (!create.ok && create.status !== 201) {
-    throw new Error(`Hostinger file upload could not be created (${create.status}).`);
+  const authHeaders = [
+    '-H', `X-Auth: ${upload.auth_key}`,
+    '-H', `X-Auth-Rest: ${upload.rest_auth_key}`,
+    '-H', 'Tus-Resumable: 1.0.0',
+    '-H', `Upload-Length: ${archive.byteLength}`,
+    '-H', 'Upload-Offset: 0'
+  ];
+  const create = await execFileAsync('curl', ['--http1.1', '-sS', '-i', '-X', 'POST', uploadEndpoint, ...authHeaders, '-H', 'Content-Length: 0'], { maxBuffer: 1024 * 1024 });
+  const createStatus = [...create.stdout.matchAll(/HTTP\/\S+\s+(\d+)/g)].pop()?.[1];
+  if (createStatus !== '201') {
+    throw new Error(`Hostinger file upload could not be created (${createStatus || 'unknown'}).`);
   }
-  const locationHeader = create.headers.get('location');
+  const locationHeader = create.stdout.match(/^Location:\s*(.+)$/im)?.[1]?.trim();
   const location = locationHeader ? new URL(locationHeader, upload.url).toString() : uploadEndpoint;
-  const send = await fetch(location, {
-    method: 'PATCH',
-    headers: { ...authHeaders, 'Content-Type': 'application/offset+octet-stream' },
-    body: archive
-  });
-  const sendText = await send.text();
-  if (!send.ok && send.status !== 204) {
-    throw new Error(`Hostinger file upload failed (${send.status}): ${sendText.slice(0, 240)}`);
+  const send = await execFileAsync('curl', [
+    '--http1.1', '-sS', '-i', '-X', 'PATCH', location,
+    '-H', `X-Auth: ${upload.auth_key}`,
+    '-H', `X-Auth-Rest: ${upload.rest_auth_key}`,
+    '-H', 'Tus-Resumable: 1.0.0',
+    '-H', 'Content-Type: application/offset+octet-stream',
+    '-H', 'Upload-Offset: 0',
+    '-H', `Content-Length: ${archive.byteLength}`,
+    '--data-binary', `@${archivePath}`
+  ], { maxBuffer: 1024 * 1024 });
+  const sendStatus = [...send.stdout.matchAll(/HTTP\/\S+\s+(\d+)/g)].pop()?.[1];
+  if (sendStatus !== '204') {
+    const body = send.stdout.split(/\r?\n\r?\n/).pop()?.slice(0, 240) || '';
+    throw new Error(`Hostinger file upload failed (${sendStatus || 'unknown'}): ${body}`);
   }
   console.log(`Uploaded ${ARCHIVE_NAME} (${archive.byteLength} bytes).`);
 }
