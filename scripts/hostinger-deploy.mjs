@@ -83,7 +83,8 @@ async function uploadArchive(archivePath, username) {
   if (!create.ok && create.status !== 201) {
     throw new Error(`Hostinger file upload could not be created (${create.status}).`);
   }
-  const location = create.headers.get('location') || uploadEndpoint;
+  const locationHeader = create.headers.get('location');
+  const location = locationHeader ? new URL(locationHeader, upload.url).toString() : uploadEndpoint;
   const send = await fetch(location, {
     method: 'PATCH',
     headers: { ...authHeaders, 'Content-Type': 'application/offset+octet-stream' },
