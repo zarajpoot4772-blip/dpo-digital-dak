@@ -1,0 +1,25 @@
+name: Deploy DPO Digital Dak to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and deploy Node.js app
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      HOSTINGER_API_KEY: ${{ secrets.HOSTINGER_API_KEY }}
+      HOSTINGER_DOMAIN: lightseagreen-donkey-207535.hostingersite.com
+    steps:
+      - name: Check out the committed source
+        uses: actions/checkout@v4
+
+      - name: Deploy to Hostinger Web App
+        run: node scripts/hostinger-deploy.mjs
