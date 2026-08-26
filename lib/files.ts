@@ -146,7 +146,7 @@ export async function approvedPdf(sourcePath:string,mime:string,output:string,in
   if(text.length<prefix.length+remarks.length)text=text.trimEnd()+'...';
   page.drawText(text,{x,y:groupY+assetSize+5,size,font,color:rgb(.08,.12,.1)});
  }
- const bytes=await pdf.save();await fs.writeFile(output,bytes,{flag:'wx'});
+ const bytes=await pdf.save();await fs.mkdir(path.dirname(output),{recursive:true});await fs.writeFile(output,bytes,{flag:'wx'});
  return {size:bytes.length,sha:crypto.createHash('sha256').update(bytes).digest('hex'),pageCount:pages.length};
 }
 

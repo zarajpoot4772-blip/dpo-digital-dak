@@ -70,19 +70,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const reference = `DPO-APR-${new Date().getFullYear()}-${String(dakId).padStart(6, '0')}`;
       const filename = `DAAK-${String(dak.diary_number).replace(/[^a-zA-Z0-9-]/g, '-')}-approved-${Date.now()}.pdf`;
       const output = path.join(process.cwd(), 'storage', 'derived', filename);
-      const stamped = await approvedPdf(
-        storagePath(document.rows[0].version_type, document.rows[0].stored_filename),
-        document.rows[0].file_type,
-        output,
-        {
-          signaturePath: approvalMode === 'SIGNATURE_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
-          stampPath: approvalMode === 'STAMP_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
-          remarks,
-          page: signaturePage,
-          x: signatureX,
-          y: signatureY
-        }
-      );
+      let stamped;
+      try {
+        stamped = await approvedPdf(
+          storagePath(document.rows[0].version_type, document.rows[0].stored_filename),
+          document.rows[0].file_type,
+          output,
+          {
+            signaturePath: approvalMode === 'SIGNATURE_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
+            stampPath: approvalMode === 'STAMP_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
+            remarks,
+            page: signaturePage,
+            x: signatureX,
+            y: signatureY
+          }
+        );
+      } catch (error) {
+        console.error('APPROVAL_PDF_ERROR', error);
+        throw new Error('Approval PDF could not be generated. Please verify the document and selected approval asset');
+      }
 
       const inserted = await db.query<{ id: number }>(
         `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)

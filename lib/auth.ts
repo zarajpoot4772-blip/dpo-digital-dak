@@ -23,7 +23,7 @@ export function apiError(error:unknown){
  const message=error instanceof Error?error.message:'ERROR';
  const knownStatus:Record<string,number>={UNAUTHORIZED:401,FORBIDDEN:403,NOT_FOUND:404,CONFLICT:409};
  if(knownStatus[message])return NextResponse.json({error:message.replaceAll('_',' ').toLowerCase()},{status:knownStatus[message]});
- const safe=/required|requires|install|invalid|must|only |cannot|already|finalized|file |remarks|reason|recipient|username|password|too long|too large|exceeds|empty|unsupported|no active|at least|different forward|does not match/i.test(message);
+ const safe=/required|requires|install|invalid|must|only |cannot|already|finalized|file |remarks|reason|recipient|username|password|too long|too large|exceeds|empty|unsupported|no active|at least|different forward|does not match|not configured|approval|position|page|asset|document preview/i.test(message);
  if(safe)return NextResponse.json({error:message},{status:400});
  console.error('API_ERROR',error);
  return NextResponse.json({error:'Internal server error'},{status:500});
