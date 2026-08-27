@@ -42,15 +42,17 @@ async function extractPdfText(bytes: Buffer) {
   });
 }
 
-export async function extractDocumentText(bytes: Buffer, mime: string, options: { strictOcr?: boolean } = {}) {
+export async function extractDocumentText(bytes: Buffer, mime: string, options: { strictOcr?: boolean; enableOcr?: boolean } = {}) {
   if (mime === DOCX_MIME) {
     const extracted = await mammoth.extractRawText({ buffer: bytes });
     return cleanText(extracted.value || '');
   }
   if (mime === 'application/pdf') return extractPdfText(bytes);
   if (mime === 'image/png' || mime === 'image/jpeg') {
+    if (!options.enableOcr) return '';
     try { return await extractImageText(bytes); }
     catch (error) {
+      ocrWorkerPromise = undefined;
       console.error('IMAGE_OCR_ERROR', error);
       if (options.strictOcr) throw error;
     }
@@ -68,7 +70,7 @@ export async function indexExistingDocumentText(db: any, force = false) {
   for (const document of pending.rows) {
     try {
       const bytes = await fs.readFile(storagePath(document.version_type, document.stored_filename));
-      const text = await extractDocumentText(bytes, document.file_type, { strictOcr: force });
+      const text = await extractDocumentText(bytes, document.file_type, { strictOcr: force, enableOcr: force });
       await db.query('UPDATE documents SET search_text=$1,text_indexed=true WHERE id=$2', [text || '', document.id]);
       indexed += 1;
     } catch (error) {
