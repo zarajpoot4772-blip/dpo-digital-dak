@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import mammoth from 'mammoth';
+import * as pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
 import { storagePath } from './runtime-paths';
 
 const MAX_INDEXED_CHARACTERS = 200_000;
@@ -14,7 +15,7 @@ async function extractPdfText(bytes: Buffer) {
   // PDF.js disables real workers in Node. Register its worker handler in the
   // same process so text extraction works in Next's bundled server runtime.
   if (!(globalThis as any).pdfjsWorker) {
-    (globalThis as any).pdfjsWorker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
+    (globalThis as any).pdfjsWorker = pdfWorker;
   }
   const loading = pdfjs.getDocument({ data: new Uint8Array(bytes), disableWorker: true, useWorkerFetch: false, isEvalSupported: false });
   const pdf = await loading.promise;
