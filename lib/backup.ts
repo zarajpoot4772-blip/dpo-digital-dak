@@ -8,6 +8,7 @@ import { dataRoot, runtimeRoot, snapshotPath, storageRoot } from './runtime-path
 const MAX_FILES = 5000;
 const MAX_UNCOMPRESSED_BYTES = 500 * 1024 * 1024;
 const STORAGE_FOLDERS = ['originals', 'derived', 'signatures'] as const;
+export const backupDirectory = path.join(runtimeRoot, 'backups');
 
 type BackupEntries = Record<string, Uint8Array>;
 
@@ -33,6 +34,34 @@ async function readStorageEntries(entries: BackupEntries) {
       entries[`storage/${folder}/${name}`] = bytes;
     }
   }
+}
+
+export async function ensureDailyBackup() {
+  if (process.env.PGLITE_MEMORY === '1') return { created: false, name: null };
+  await fs.mkdir(backupDirectory, { recursive: true });
+  const name = `automatic-${new Date().toISOString().slice(0, 10)}.zip`;
+  const target = path.join(backupDirectory, name);
+  if (await exists(target)) return { created: false, name };
+  const bytes = await createBackupBytes();
+  try {
+    await fs.writeFile(target, bytes, { flag: 'wx' });
+    return { created: true, name };
+  } catch (error: any) {
+    if (error?.code === 'EEXIST') return { created: false, name };
+    throw error;
+  }
+}
+
+export async function listBackupFiles() {
+  await fs.mkdir(backupDirectory, { recursive: true });
+  const items = await fs.readdir(backupDirectory, { withFileTypes: true });
+  const files = [];
+  for (const item of items) {
+    if (!item.isFile() || !item.name.endsWith('.zip')) continue;
+    const stat = await fs.stat(path.join(backupDirectory, item.name));
+    files.push({ name: item.name, size: stat.size, modified_at: stat.mtime.toISOString(), automatic: item.name.startsWith('automatic-') });
+  }
+  return files.sort((a, b) => b.modified_at.localeCompare(a.modified_at)).slice(0, 50);
 }
 
 export async function createBackupBytes() {

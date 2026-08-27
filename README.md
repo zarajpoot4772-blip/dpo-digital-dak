@@ -50,6 +50,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 21. The notification panel creates one daily SLA reminder for active Dak files assigned to the user when their due date is today, tomorrow or overdue.
 22. Admin, Clerk and DPO can correct active Dak metadata from File details without changing the diary number, branch or immutable files. Changes are audited and the responsible user is notified.
 23. In approval placement, clicking any visible PDF page automatically selects that page and places the signature or stamp at the clicked location. The asset can then be dragged for fine adjustment before approval.
+24. The server creates one automatic daily backup on the first dashboard request and Admin can view/download the server backup history. The temporary preview does not create backups. The dashboard request never fails if a backup has a transient storage error; the error is logged for review.
 
 ## Security controls in this MVP
 

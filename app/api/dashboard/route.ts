@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { apiError, requireUser } from '@/lib/auth';
 import { getDb } from '@/lib/db';
+import { ensureDailyBackup } from '@/lib/backup';
 
 export async function GET() {
   try {
     const user = await requireUser();
     const db = await getDb();
+    try { await ensureDailyBackup(); } catch (error) { console.error('DAILY_BACKUP_ERROR', error); }
     const args: unknown[] = [];
     let scope = '';
     let aliasedScope = '';

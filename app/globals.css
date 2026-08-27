@@ -375,3 +375,9 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .placement-pages .placement-paper{cursor:crosshair}
 .placement-pages .placed-stamp.draggable{cursor:grab}
 .placement-pages .placed-stamp.draggable:active{cursor:grabbing}
+
+.backup-history{margin-top:18px;overflow:hidden;max-width:1100px}
+.backup-history .panel-head{align-items:center}
+.backup-history table{min-width:620px}
+.backup-history td b{font-size:10px;word-break:break-all}
+@media(max-width:760px){.backup-history .panel-head{align-items:flex-start;flex-direction:column;gap:9px}.backup-history .panel-head .secondary{align-self:flex-start}}
