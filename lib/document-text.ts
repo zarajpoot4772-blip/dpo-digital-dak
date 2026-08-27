@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
+import PDFParser from 'pdf2json';
 import mammoth from 'mammoth';
-import * as pdfWorker from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
 import { storagePath } from './runtime-paths';
 
 const MAX_INDEXED_CHARACTERS = 200_000;
@@ -11,25 +11,22 @@ function cleanText(value: string) {
 }
 
 async function extractPdfText(bytes: Buffer) {
-  const pdfjs: any = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  // PDF.js disables real workers in Node. Register its worker handler in the
-  // same process so text extraction works in Next's bundled server runtime.
-  if (!(globalThis as any).pdfjsWorker) {
-    (globalThis as any).pdfjsWorker = pdfWorker;
-  }
-  const loading = pdfjs.getDocument({ data: new Uint8Array(bytes), disableWorker: true, useWorkerFetch: false, isEvalSupported: false });
-  const pdf = await loading.promise;
-  try {
-    const parts: string[] = [];
-    for (let pageNumber = 1; pageNumber <= pdf.numPages && parts.join(' ').length < MAX_INDEXED_CHARACTERS; pageNumber += 1) {
-      const page = await pdf.getPage(pageNumber);
-      const content = await page.getTextContent();
-      parts.push(content.items.map((item: any) => String(item.str || '')).join(' '));
-    }
-    return cleanText(parts.join(' '));
-  } finally {
-    await pdf.destroy().catch(() => undefined);
-  }
+  return new Promise<string>((resolve, reject) => {
+    const parser: any = new (PDFParser as any)();
+    parser.on('pdfParser_dataError', (event: any) => reject(event?.parserError || new Error('PDF text extraction failed')));
+    parser.on('pdfParser_dataReady', (pdf: any) => {
+      const parts: string[] = [];
+      for (const page of pdf?.Pages || []) {
+        for (const text of page?.Texts || []) {
+          for (const run of text?.R || []) {
+            if (run?.T) parts.push(String(run.T));
+          }
+        }
+      }
+      resolve(cleanText(parts.join(' ')));
+    });
+    try { parser.parseBuffer(bytes); } catch (error) { reject(error); }
+  });
 }
 
 export async function extractDocumentText(bytes: Buffer, mime: string) {
