@@ -329,3 +329,11 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 
 .page-title-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
 @media(max-width:760px){.page-title-actions{width:100%;justify-content:flex-start}.page-title-actions button{flex:1;min-width:130px}}
+
+.language-toggle{border:1px solid #cbd8d2;background:#f2f7f4;color:#1b6145;border-radius:6px;min-height:31px;padding:5px 10px;font-size:10px;font-weight:800;white-space:nowrap}
+.language-toggle:hover{background:#e4f1ea;border-color:#8fbaa5}
+.login-panel{position:relative}
+.login-language-toggle{position:absolute;top:25px;right:25px}
+[data-language="ur"]{font-family:"Noto Nastaliq Urdu","Noto Naskh Arabic","Segoe UI",Tahoma,sans-serif;line-height:1.45}
+[data-language="ur"] .eyebrow,[data-language="ur"] small,[data-language="ur"] button,[data-language="ur"] input,[data-language="ur"] select,[data-language="ur"] textarea{font-family:"Noto Naskh Arabic","Segoe UI",Tahoma,sans-serif}
+@media(max-width:760px){.login-language-toggle{top:15px;right:15px}.language-toggle{padding-inline:8px;font-size:9px}}
