@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import PDFParser from 'pdf2json';
 import mammoth from 'mammoth';
 import { storagePath } from './runtime-paths';
@@ -15,7 +16,7 @@ async function extractImageText(bytes: Buffer) {
   if (!ocrWorkerPromise) {
     ocrWorkerPromise = (async () => {
       const { createWorker } = await import('tesseract.js');
-      return createWorker('eng+urd');
+      return createWorker('eng+urd', 1, { langPath: path.join(process.cwd(), 'assets', 'tessdata'), gzip: true });
     })();
   }
   const worker = await ocrWorkerPromise;
