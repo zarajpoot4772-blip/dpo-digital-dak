@@ -268,3 +268,11 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .backup-note{display:block;font-size:9px;line-height:1.5;color:#72817a;margin-top:14px}
 .backup-note.warning{color:#8b5d21;background:#fff7e9;border:1px solid #ead5b4;border-radius:5px;padding:8px 9px}
 @media(max-width:760px){.backup-grid{grid-template-columns:1fr;gap:12px}.backup-card{padding:18px}.backup-card>p{min-height:0}}
+
+.profile>button:disabled{opacity:.4;cursor:not-allowed}
+.user-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:190px}
+.user-actions .open-btn{white-space:nowrap}
+.password-dialog>form{width:min(470px,92vw)}
+.password-dialog .dialog-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.password-rules{font-size:9px!important;color:#6f7c76!important;margin:8px 0 0!important}
+@media(max-width:760px){.profile{gap:5px;padding-left:7px}.profile>button{font-size:16px;padding:3px}.user-actions{min-width:0}.user-actions .open-btn{font-size:9px;padding:6px 7px}.password-dialog>form{width:100%;max-width:100%}}

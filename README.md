@@ -38,6 +38,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 9. Admin can create office branches and provision a dedicated Branch Head login in one step.
 10. Branch Heads can upload and track only their own branch Dak; submissions are automatically assigned to DPO and approval/signing remains unavailable to Branch Heads.
 11. Admin can download a complete database/private-file backup ZIP and restore a trusted backup. Restore creates a server-side safety copy before replacing the active runtime; restore is disabled in the temporary Arena preview.
+12. Every signed-in user can change their own password. Admin can reset another active user's password; both operations revoke the affected user's existing sessions and enforce the password policy.
 
 ## Security controls in this MVP
 
