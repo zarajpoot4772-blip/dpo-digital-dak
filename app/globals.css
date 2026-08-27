@@ -324,3 +324,5 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .viewer-tools>span{min-width:0;overflow-wrap:anywhere}
 .version-switch{flex-wrap:wrap;justify-content:flex-end}
 @media(max-width:760px){.version-switch{justify-content:flex-start}}
+
+.search-help{margin-top:13px;padding:8px 10px;border-left:3px solid #34775d;background:#eef5f1;color:#5b7167;font-size:9px;line-height:1.45}

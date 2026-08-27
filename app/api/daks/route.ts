@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
     if (q) {
       args.push(`%${q}%`);
-      where.push(`(d.diary_number ILIKE $${args.length} OR d.subject ILIKE $${args.length} OR d.sender ILIKE $${args.length} OR d.letter_number ILIKE $${args.length})`);
+      where.push(`(d.diary_number ILIKE $${args.length} OR d.subject ILIKE $${args.length} OR d.sender ILIKE $${args.length} OR d.letter_number ILIKE $${args.length} OR EXISTS (SELECT 1 FROM documents sd WHERE sd.dak_id=d.id AND sd.search_text ILIKE $${args.length}))`);
     }
     if (status) {
       if (status === 'PENDING') where.push(`d.status IN ('PENDING','OPENED','RETURNED')`);
@@ -134,14 +134,14 @@ export async function POST(req: NextRequest) {
       );
       const id = dak.rows[0].id;
       if (saved) await tx.query(
-        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
-         VALUES($1,'ORIGINAL',$2,$3,$4,$5,$6,$7)`,
-        [id,saved.original,saved.stored,saved.type,saved.size,saved.sha,user.id]
+        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
+         VALUES($1,'ORIGINAL',$2,$3,$4,$5,$6,$7,$8)`,
+        [id,saved.original,saved.stored,saved.type,saved.size,saved.sha,saved.searchText,user.id]
       );
       if(saved?.converted)await tx.query(
-        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
-         VALUES($1,'CONVERTED',$2,$3,$4,$5,$6,$7)`,
-        [id,saved.converted.original,saved.converted.stored,saved.converted.type,saved.converted.size,saved.converted.sha,user.id]
+        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
+         VALUES($1,'CONVERTED',$2,$3,$4,$5,$6,$7,$8)`,
+        [id,saved.converted.original,saved.converted.stored,saved.converted.type,saved.converted.size,saved.converted.sha,saved.converted.searchText,user.id]
       );
       await tx.query(
         `INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status,ip,user_agent)

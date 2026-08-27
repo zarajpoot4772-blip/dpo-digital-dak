@@ -40,16 +40,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const ids: number[] = [];
       for (const item of saved) {
         const row = await tx.query<{ id: number }>(
-          `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
-           VALUES($1,'SUPPORTING',$2,$3,$4,$5,$6,$7) RETURNING id`,
-          [dakId, item.original, item.stored, item.type, item.size, item.sha, user.id]
+          `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
+           VALUES($1,'SUPPORTING',$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+          [dakId, item.original, item.stored, item.type, item.size, item.sha, item.searchText, user.id]
         );
         ids.push(row.rows[0].id);
         if (item.converted) {
           const convertedRow = await tx.query<{ id: number }>(
-            `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
-             VALUES($1,'SUPPORTING_CONVERTED',$2,$3,$4,$5,$6,$7) RETURNING id`,
-            [dakId, item.converted.original, item.converted.stored, item.converted.type, item.converted.size, item.converted.sha, user.id]
+            `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
+             VALUES($1,'SUPPORTING_CONVERTED',$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+            [dakId, item.converted.original, item.converted.stored, item.converted.type, item.converted.size, item.converted.sha, item.converted.searchText, user.id]
           );
           ids.push(convertedRow.rows[0].id);
         }

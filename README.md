@@ -42,6 +42,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 13. DPO/Admin can reassign an active Dak to another authorized user. Assigned Officers and Branch Heads can send it back to the active DPO with optional remarks; returned files are visible in the Sent Back queue and remain auditable.
 14. Authorized users can add up to 10 supporting PDF/DOCX/JPG/PNG files to an active Dak from File details. Originals and DOCX-generated supporting PDF previews are stored as separate immutable document versions and the upload is audited.
 15. PDF/image previews and permitted download/print copies are server-watermarked with classification, role and user identity. Admin, DPO and Clerk have download/print copy controls; Officer and Branch Head receive view-only access, while source/approval access remains restricted. The immutable source version is never modified.
+16. Keyword search includes indexed PDF text and DOCX text, with startup indexing for older documents. Image-only scans remain searchable by Dak metadata until an approved OCR engine is integrated.
 
 ## Security controls in this MVP
 
