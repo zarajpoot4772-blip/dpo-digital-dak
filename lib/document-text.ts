@@ -45,16 +45,16 @@ export async function extractDocumentText(bytes: Buffer, mime: string) {
 export async function indexExistingDocumentText(db: any) {
   const pending = await db.query(
     `SELECT id,version_type,stored_filename,file_type FROM documents
-     WHERE search_text IS NULL ORDER BY id LIMIT 500`
+     WHERE text_indexed=false OR text_indexed IS NULL ORDER BY id LIMIT 500`
   );
   for (const document of pending.rows) {
     try {
       const bytes = await fs.readFile(storagePath(document.version_type, document.stored_filename));
       const text = await extractDocumentText(bytes, document.file_type);
-      await db.query('UPDATE documents SET search_text=$1 WHERE id=$2', [text || '', document.id]);
+      await db.query('UPDATE documents SET search_text=$1,text_indexed=true WHERE id=$2', [text || '', document.id]);
     } catch (error) {
       console.error('DOCUMENT_TEXT_INDEX_ERROR', document.id, error);
-      await db.query('UPDATE documents SET search_text=$1 WHERE id=$2', ['', document.id]);
+      await db.query('UPDATE documents SET search_text=$1,text_indexed=true WHERE id=$2', ['', document.id]);
     }
   }
 }

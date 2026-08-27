@@ -134,13 +134,13 @@ export async function POST(req: NextRequest) {
       );
       const id = dak.rows[0].id;
       if (saved) await tx.query(
-        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
-         VALUES($1,'ORIGINAL',$2,$3,$4,$5,$6,$7,$8)`,
+        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,text_indexed,uploaded_by)
+         VALUES($1,'ORIGINAL',$2,$3,$4,$5,$6,$7,true,$8)`,
         [id,saved.original,saved.stored,saved.type,saved.size,saved.sha,saved.searchText,user.id]
       );
       if(saved?.converted)await tx.query(
-        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,uploaded_by)
-         VALUES($1,'CONVERTED',$2,$3,$4,$5,$6,$7,$8)`,
+        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,search_text,text_indexed,uploaded_by)
+         VALUES($1,'CONVERTED',$2,$3,$4,$5,$6,$7,true,$8)`,
         [id,saved.converted.original,saved.converted.stored,saved.converted.type,saved.converted.size,saved.converted.sha,saved.converted.searchText,user.id]
       );
       await tx.query(
