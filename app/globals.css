@@ -326,3 +326,6 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 @media(max-width:760px){.version-switch{justify-content:flex-start}}
 
 .search-help{margin-top:13px;padding:8px 10px;border-left:3px solid #34775d;background:#eef5f1;color:#5b7167;font-size:9px;line-height:1.45}
+
+.page-title-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+@media(max-width:760px){.page-title-actions{width:100%;justify-content:flex-start}.page-title-actions button{flex:1;min-width:130px}}
