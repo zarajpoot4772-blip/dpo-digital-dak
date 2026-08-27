@@ -42,19 +42,24 @@ export async function extractDocumentText(bytes: Buffer, mime: string) {
   return '';
 }
 
-export async function indexExistingDocumentText(db: any) {
+export async function indexExistingDocumentText(db: any, force = false) {
   const pending = await db.query(
     `SELECT id,version_type,stored_filename,file_type FROM documents
-     WHERE text_indexed=false OR text_indexed IS NULL ORDER BY id LIMIT 500`
+     WHERE ${force ? 'true' : '(text_indexed=false OR text_indexed IS NULL)'} ORDER BY id LIMIT 500`
   );
+  let indexed = 0;
+  let failed = 0;
   for (const document of pending.rows) {
     try {
       const bytes = await fs.readFile(storagePath(document.version_type, document.stored_filename));
       const text = await extractDocumentText(bytes, document.file_type);
       await db.query('UPDATE documents SET search_text=$1,text_indexed=true WHERE id=$2', [text || '', document.id]);
+      indexed += 1;
     } catch (error) {
+      failed += 1;
       console.error('DOCUMENT_TEXT_INDEX_ERROR', document.id, error);
-      await db.query('UPDATE documents SET search_text=$1,text_indexed=true WHERE id=$2', ['', document.id]);
+      await db.query('UPDATE documents SET search_text=$1,text_indexed=false WHERE id=$2', ['', document.id]);
     }
   }
+  return { indexed, failed, total: pending.rows.length };
 }

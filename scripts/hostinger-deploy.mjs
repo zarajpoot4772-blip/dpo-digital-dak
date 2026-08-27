@@ -154,7 +154,16 @@ async function waitForBuild(username, uuid) {
     const state = current?.state || 'running';
     console.log(`Build status: ${state}`);
     if (state === 'completed') return;
-    if (state === 'failed') throw new Error('Hostinger build failed. Open the deployment build log for details.');
+    if (state === 'failed') {
+      try {
+        const failureLogs = await hostingerRequest(`/api/hosting/v1/accounts/${encodeURIComponent(username)}/websites/${encodeURIComponent(targetDomain)}/nodejs/builds/${encodeURIComponent(uuid)}/logs?from_line=0`);
+        const failureLines = failureLogs?.lines || failureLogs?.data || [];
+        for (const line of failureLines) console.error(typeof line === 'string' ? line : JSON.stringify(line));
+      } catch (error) {
+        console.error(`Could not read failed Hostinger build logs: ${error.message}`);
+      }
+      throw new Error('Hostinger build failed. Open the deployment build log for details.');
+    }
     await new Promise((resolve) => setTimeout(resolve, 10000));
   }
   throw new Error('Hostinger build timed out after 30 minutes.');
