@@ -40,6 +40,27 @@ export async function GET(req: NextRequest) {
       args.push(priority);
       where.push(`d.priority=$${args.length}`);
     }
+    const branch = (req.nextUrl.searchParams.get('branch') || '').trim().slice(0, 120);
+    const dateFrom = (req.nextUrl.searchParams.get('date_from') || '').trim();
+    const dateTo = (req.nextUrl.searchParams.get('date_to') || '').trim();
+    const confidentiality = (req.nextUrl.searchParams.get('confidentiality') || '').trim();
+    const assignedTo = Number(req.nextUrl.searchParams.get('assigned_to') || 0);
+    if (branch) { args.push(branch); where.push(`d.branch=$${args.length}`); }
+    if (dateFrom) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateFrom)) throw new Error('Invalid start date');
+      args.push(dateFrom); where.push(`d.received_date >= $${args.length}`);
+    }
+    if (dateTo) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateTo)) throw new Error('Invalid end date');
+      args.push(dateTo); where.push(`d.received_date <= $${args.length}`);
+    }
+    if (dateFrom && dateTo && dateFrom > dateTo) throw new Error('Start date must not be after end date');
+    if (confidentiality && ['OFFICIAL','RESTRICTED','CONFIDENTIAL'].includes(confidentiality)) {
+      args.push(confidentiality); where.push(`d.confidentiality=$${args.length}`);
+    }
+    if (assignedTo > 0 && Number.isInteger(assignedTo)) {
+      args.push(assignedTo); where.push(`d.assigned_to=$${args.length}`);
+    }
 
     const result = await db.query(
       `SELECT d.id,d.diary_number,d.diary_date,d.received_date,d.subject,d.sender,d.letter_number,
