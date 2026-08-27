@@ -25,6 +25,7 @@ storage/signatures/*
 
 # Tool/editor/system files
 *.log
+*.traineddata
 .DS_Store
 Thumbs.db
 .vscode/
