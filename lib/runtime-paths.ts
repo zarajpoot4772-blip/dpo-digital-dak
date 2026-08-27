@@ -23,7 +23,7 @@ export const snapshotPath = path.join(dataRoot, 'pglite-data.tar');
 export const usingExternalRuntimeRoot = runtimeRoot !== path.resolve(process.cwd());
 
 export function storagePath(type: string, name: string) {
-  return path.join(storageRoot, type === 'ORIGINAL' ? 'originals' : 'derived', path.basename(name));
+  return path.join(storageRoot, ['ORIGINAL', 'SUPPORTING'].includes(type) ? 'originals' : 'derived', path.basename(name));
 }
 
 export function signaturePath(name: string) {

@@ -40,6 +40,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 11. Admin can download a complete database/private-file backup ZIP and restore a trusted backup. Restore creates a server-side safety copy before replacing the active runtime; restore is disabled in the temporary Arena preview.
 12. Every signed-in user can change their own password. Admin can reset another active user's password; both operations revoke the affected user's existing sessions and enforce the password policy.
 13. DPO/Admin can reassign an active Dak to another authorized user. Assigned Officers and Branch Heads can send it back to the active DPO with optional remarks; returned files are visible in the Sent Back queue and remain auditable.
+14. Authorized users can add up to 10 supporting PDF/DOCX/JPG/PNG files to an active Dak from File details. Originals and DOCX-generated supporting PDF previews are stored as separate immutable document versions and the upload is audited.
 
 ## Security controls in this MVP
 

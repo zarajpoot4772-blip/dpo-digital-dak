@@ -311,3 +311,11 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .action.reassign>span{background:#eeeafa;color:#5f4f91}
 .action.sendback>span{background:#fff0dd;color:#98601a}
 .sendback-note{margin:10px 0;padding:9px 11px;border-left:3px solid #bb7b25;background:#fff7e9;color:#7f5b27;border-radius:4px;font-size:10px}
+
+.supporting-upload{display:flex;flex-direction:column;gap:7px;margin-top:14px;padding:13px;border:1px dashed #9bb7ab;border-radius:7px;background:#f6faf8;color:#265c47}
+.supporting-upload>b{font-size:11px}
+.supporting-upload>small{font-size:9px;color:#718079;line-height:1.4}
+.supporting-upload>input{width:100%;font-size:10px;color:#4c6057}
+.supporting-upload>.primary{align-self:flex-start;margin-top:3px}
+.supporting-version>span{color:#1d7652}
+@media(max-width:760px){.supporting-upload>.primary{width:100%}}
