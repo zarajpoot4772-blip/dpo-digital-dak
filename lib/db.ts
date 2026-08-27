@@ -110,3 +110,9 @@ async function init(){
  return db;
 }
 export function getDb(){ if(!global.__dpoDb) global.__dpoDb=init(); return global.__dpoDb; }
+
+export async function closeDb(){
+ const current=global.__dpoDb;
+ if(!current)return;
+ try{const db=await current;await db.close()}finally{global.__dpoDb=undefined;global.__dpoPersist=undefined}
+}
