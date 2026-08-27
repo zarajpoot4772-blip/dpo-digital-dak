@@ -139,7 +139,15 @@ const translations: Array<[string, string]> = ([
   ['active', 'فعال'],
   ['urgent', 'ہنگامی'],
   ['Total', 'کل'],
-  ['Active', 'فعال']
+  ['Active', 'فعال'],
+  ['Overdue', 'میعاد گزر چکی'],
+  ['Due date', 'آخری تاریخ'],
+  ['Due from', 'آخری تاریخ شروع'],
+  ['Due to', 'آخری تاریخ اختتام'],
+  ['No due date', 'آخری تاریخ مقرر نہیں'],
+  ['days left', 'دن باقی'],
+  ['days open', 'دن سے کھلی'],
+  ['Due', 'آخری تاریخ']
 ] as Array<[string, string]>).sort((a, b) => b[0].length - a[0].length);
 
 const originalText = new WeakMap<Text, string>();

@@ -43,6 +43,8 @@ export async function GET(req: NextRequest) {
     const branch = (req.nextUrl.searchParams.get('branch') || '').trim().slice(0, 120);
     const dateFrom = (req.nextUrl.searchParams.get('date_from') || '').trim();
     const dateTo = (req.nextUrl.searchParams.get('date_to') || '').trim();
+    const dueFrom = (req.nextUrl.searchParams.get('due_from') || '').trim();
+    const dueTo = (req.nextUrl.searchParams.get('due_to') || '').trim();
     const confidentiality = (req.nextUrl.searchParams.get('confidentiality') || '').trim();
     const assignedTo = Number(req.nextUrl.searchParams.get('assigned_to') || 0);
     if (branch) { args.push(branch); where.push(`d.branch=$${args.length}`); }
@@ -55,6 +57,15 @@ export async function GET(req: NextRequest) {
       args.push(dateTo); where.push(`d.received_date <= $${args.length}`);
     }
     if (dateFrom && dateTo && dateFrom > dateTo) throw new Error('Start date must not be after end date');
+    if (dueFrom) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dueFrom)) throw new Error('Invalid due-date start');
+      args.push(dueFrom); where.push(`d.due_date >= $${args.length}`);
+    }
+    if (dueTo) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dueTo)) throw new Error('Invalid due-date end');
+      args.push(dueTo); where.push(`d.due_date <= $${args.length}`);
+    }
+    if (dueFrom && dueTo && dueFrom > dueTo) throw new Error('Due-date start must not be after end date');
     if (confidentiality && ['OFFICIAL','RESTRICTED','CONFIDENTIAL'].includes(confidentiality)) {
       args.push(confidentiality); where.push(`d.confidentiality=$${args.length}`);
     }
@@ -63,7 +74,7 @@ export async function GET(req: NextRequest) {
     }
 
     const result = await db.query(
-      `SELECT d.id,d.diary_number,d.diary_date,d.received_date,d.subject,d.sender,d.letter_number,
+      `SELECT d.id,d.diary_number,d.diary_date,d.received_date,d.due_date,d.subject,d.sender,d.letter_number,
        d.department,d.branch,d.priority,d.confidentiality,d.status,d.updated_at,u.name assigned_name,
        (SELECT max(created_at) FROM actions WHERE dak_id=d.id) last_action_at
        FROM daks d LEFT JOIN users u ON u.id=d.assigned_to
@@ -93,12 +104,13 @@ export async function POST(req: NextRequest) {
     const diaryDate = get('diary_date') || today;
     const receivedDate = get('received_date') || today;
     const receivedTime = get('received_time') || currentTime;
+    const dueDate = get('due_date');
     const subject = (get('subject') || uploadedSubject || 'Untitled Dak').slice(0,500);
     const branch = user.branch || 'Unassigned Branch';
     const department = user.department || 'DPO Office';
     const sender = branch;
     const letterDate = get('letter_date');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(diaryDate) || !/^\d{4}-\d{2}-\d{2}$/.test(receivedDate) || (letterDate&&!/^\d{4}-\d{2}-\d{2}$/.test(letterDate))) throw new Error('Invalid date');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(diaryDate) || !/^\d{4}-\d{2}-\d{2}$/.test(receivedDate) || (letterDate&&!/^\d{4}-\d{2}-\d{2}$/.test(letterDate)) || (dueDate&&!/^\d{4}-\d{2}-\d{2}$/.test(dueDate))) throw new Error('Invalid date');
     if (!/^\d{2}:\d{2}(:\d{2})?$/.test(receivedTime)) throw new Error('Invalid received time');
     const priority = get('priority') || 'NORMAL';
     const confidentiality = get('confidentiality') || 'OFFICIAL';
@@ -128,9 +140,9 @@ export async function POST(req: NextRequest) {
 
     const dakId = await db.transaction(async tx => {
       const dak = await tx.query<{ id: number }>(
-        `INSERT INTO daks(diary_number,diary_date,received_date,received_time,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks)
-         VALUES($1,$2,$3,$4,$5,$6,$7,nullif($8,'')::date,$9,$10,$11,$12,'PENDING',$13,$14,$15) RETURNING id`,
-        [diaryNumber,diaryDate,receivedDate,receivedTime,subject,sender,get('letter_number'),letterDate,department,branch,priority,confidentiality,assignedTo,user.id,get('remarks')]
+        `INSERT INTO daks(diary_number,diary_date,received_date,received_time,due_date,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks)
+         VALUES($1,$2,$3,$4,nullif($5,'')::date,$6,$7,$8,nullif($9,'')::date,$10,$11,$12,$13,'PENDING',$14,$15,$16) RETURNING id`,
+        [diaryNumber,diaryDate,receivedDate,receivedTime,dueDate,subject,sender,get('letter_number'),letterDate,department,branch,priority,confidentiality,assignedTo,user.id,get('remarks')]
       );
       const id = dak.rows[0].id;
       if (saved) await tx.query(

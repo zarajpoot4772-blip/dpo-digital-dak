@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'node:fs/promises';
 import { apiError, ipOf, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
-import { storagePath, watermarkedDocument } from '@/lib/files';
+import { storagePath } from '@/lib/files';
 
 export const runtime = 'nodejs';
 
@@ -27,24 +27,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (user.role === 'OFFICER' && doc.assigned_to !== user.id) throw new Error('FORBIDDEN');
     if (user.role === 'BRANCH_HEAD' && doc.branch !== user.branch && doc.assigned_to !== user.id) throw new Error('FORBIDDEN');
     if (access === 'source' && !['ADMIN', 'DPO'].includes(user.role)) throw new Error('FORBIDDEN');
-    if (['download', 'print'].includes(access) && !exportRoles.has(user.role)) {
-      throw new Error('FORBIDDEN');
-    }
+    if (['download', 'print'].includes(access) && !exportRoles.has(user.role)) throw new Error('FORBIDDEN');
 
-    const originalPath = storagePath(doc.version_type, doc.stored_filename);
-    let bytes = await fs.readFile(originalPath);
-    let contentType = doc.file_type;
-    let filename = String(doc.original_filename).replace(/["\r\n]/g, '') || 'document';
-    let watermarked = false;
-    const canRenderWatermark = doc.file_type === 'application/pdf' || doc.file_type === 'image/png' || doc.file_type === 'image/jpeg';
-    if (access !== 'source' && canRenderWatermark) {
-      const classification = String(doc.confidentiality || 'OFFICIAL');
-      const label = `DPO DIGITAL DAK · ${classification} · ${user.role} · ${user.name}`;
-      bytes = await watermarkedDocument(originalPath, doc.file_type, label);
-      contentType = 'application/pdf';
-      filename = filename.replace(/\.(pdf|png|jpe?g)$/i, '') + '-controlled-copy.pdf';
-      watermarked = true;
-    }
+    const bytes = await fs.readFile(storagePath(doc.version_type, doc.stored_filename));
+    const filename = String(doc.original_filename).replace(/["\r\n]/g, '') || 'document';
 
     if (access === 'download' || access === 'print') {
       await db.query(
@@ -57,11 +43,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     return new NextResponse(bytes, {
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': doc.file_type,
         'Content-Disposition': `${access === 'download' ? 'attachment' : 'inline'}; filename="${filename}"`,
         'Cache-Control': 'private, no-store',
-        'X-Document-SHA256': doc.sha256,
-        'X-Watermarked-Copy': String(watermarked)
+        'X-Document-SHA256': doc.sha256
       }
     });
   } catch (error) {

@@ -41,10 +41,12 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 12. Every signed-in user can change their own password. Admin can reset another active user's password; both operations revoke the affected user's existing sessions and enforce the password policy.
 13. DPO/Admin can reassign an active Dak to another authorized user. Assigned Officers and Branch Heads can send it back to the active DPO with optional remarks; returned files are visible in the Sent Back queue and remain auditable.
 14. Authorized users can add up to 10 supporting PDF/DOCX/JPG/PNG files to an active Dak from File details. Originals and DOCX-generated supporting PDF previews are stored as separate immutable document versions and the upload is audited.
-15. PDF/image previews and permitted download/print copies are server-watermarked with classification, role and user identity. Admin, DPO and Clerk have download/print copy controls; Officer and Branch Head receive view-only access, while source/approval access remains restricted. The immutable source version is never modified.
+15. PDF/image previews and permitted download/print copies use authenticated role-based access. Admin, DPO and Clerk have download/print copy controls; Officer and Branch Head receive view-only access, while source/approval access remains restricted. The original file is returned without a watermark and remains immutable.
 16. Keyword search includes indexed PDF text and DOCX text, with startup indexing for older documents. Admin can manually rebuild the index from Advanced Search when needed. Image-only scans remain searchable by Dak metadata until an approved OCR engine is integrated.
 17. The login screen and portal include an English/Urdu language toggle. The choice is stored in the browser and keeps the document review layout stable.
 18. The dashboard includes pending-ageing indicators, oldest-active-file shortcuts and branch workload bars. Counts remain server-scoped for Officer and Branch Head accounts.
+19. New Dak supports an optional due date. Dashboard, Advanced Search and Reports show due-date filters, overdue counts and days remaining without making the due date mandatory.
+20. The document viewer no longer adds a watermark. Original PDF/image files are returned unchanged; the existing server-side role-based download/print permissions and audit logging remain active.
 
 ## Security controls in this MVP
 

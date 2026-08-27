@@ -360,3 +360,6 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .branch-load-key span{display:flex;align-items:center;gap:5px}.branch-load-key i{width:15px;height:6px;border-radius:4px;display:inline-block}.total-key{background:#b8d7c8}.active-key{background:#237a56}
 @media(max-width:1000px){.dashboard-insights{grid-template-columns:1fr}}
 @media(max-width:760px){.dashboard-insights{gap:12px;margin-top:12px}.ageing-row{padding-inline:12px}.branch-load-list{padding-inline:12px}.branch-load-key{padding-inline:12px}}
+
+.report-metric.overdue{border-top-color:#8d5a23}.report-metric.overdue b{color:#8d5a23}
+@media(min-width:1001px){.metrics{grid-template-columns:repeat(6,minmax(0,1fr))}}

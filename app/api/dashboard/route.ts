@@ -30,6 +30,9 @@ export async function GET() {
     const urgent = await db.query<{ count: string }>(
       `SELECT count(*)::text count FROM daks${scope ? `${scope} AND` : ' WHERE'} priority='URGENT' AND status NOT IN ('APPROVED','REJECTED','ARCHIVED')`, args
     );
+    const overdue = await db.query<{ count: string }>(
+      `SELECT count(*)::text count FROM daks${scope ? `${scope} AND` : ' WHERE'} due_date IS NOT NULL AND due_date<current_date AND status NOT IN ('APPROVED','REJECTED','ARCHIVED')`, args
+    );
     const recent = await db.query(
       `SELECT d.id,d.diary_number,d.subject,d.priority,d.status,d.updated_at,u.name assigned_name
        FROM daks d LEFT JOIN users u ON u.id=d.assigned_to ${aliasedScope}
@@ -37,8 +40,10 @@ export async function GET() {
     );
     const activeScope = aliasedScope ? `${aliasedScope} AND` : 'WHERE';
     const ageing = await db.query(
-      `SELECT d.id,d.diary_number,d.subject,d.branch,d.priority,d.status,d.received_date,
-       GREATEST(0,current_date-d.received_date)::text pending_days
+      `SELECT d.id,d.diary_number,d.subject,d.branch,d.priority,d.status,d.received_date,d.due_date,
+       GREATEST(0,current_date-d.received_date)::text pending_days,
+       CASE WHEN d.due_date IS NOT NULL AND d.due_date<current_date THEN true ELSE false END overdue,
+       CASE WHEN d.due_date IS NULL THEN NULL ELSE (d.due_date-current_date)::text END due_days
        FROM daks d ${activeScope} d.status NOT IN ('APPROVED','REJECTED','ARCHIVED')
        ORDER BY CASE d.priority WHEN 'URGENT' THEN 0 WHEN 'HIGH' THEN 1 ELSE 2 END,
        GREATEST(0,current_date-d.received_date) DESC,d.updated_at ASC LIMIT 8`, args
@@ -46,7 +51,8 @@ export async function GET() {
     const branchLoad = await db.query(
       `SELECT COALESCE(d.branch,'Unassigned Branch') branch,count(*)::text total,
        count(*) FILTER (WHERE d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text active,
-       count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent
+       count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent,
+       count(*) FILTER (WHERE d.due_date IS NOT NULL AND d.due_date<current_date AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text overdue
        FROM daks d ${aliasedScope} GROUP BY COALESCE(d.branch,'Unassigned Branch')
        ORDER BY count(*) DESC,branch LIMIT 12`, args
     );
@@ -56,6 +62,7 @@ export async function GET() {
       total,
       today: Number(today.rows[0].count),
       urgent: Number(urgent.rows[0].count),
+      overdue: Number(overdue.rows[0].count),
       recent: recent.rows,
       ageing: ageing.rows,
       branch_load: branchLoad.rows

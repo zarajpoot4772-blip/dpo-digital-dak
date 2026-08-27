@@ -39,7 +39,8 @@ export async function GET(req: NextRequest) {
        count(*) FILTER (WHERE d.status='APPROVED')::text approved,
        count(*) FILTER (WHERE d.status='REJECTED')::text rejected,
        count(*) FILTER (WHERE d.status='ARCHIVED')::text archived,
-       count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent
+       count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent,
+       count(*) FILTER (WHERE d.due_date IS NOT NULL AND d.due_date<current_date AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text overdue
        FROM daks d ${clause}`,
       args
     );
@@ -48,7 +49,8 @@ export async function GET(req: NextRequest) {
        count(*) FILTER (WHERE d.status IN ('PENDING','OPENED','RETURNED'))::text pending,
        count(*) FILTER (WHERE d.status='FORWARDED')::text forwarded,
        count(*) FILTER (WHERE d.status='APPROVED')::text approved,
-       count(*) FILTER (WHERE d.status='REJECTED')::text rejected
+       count(*) FILTER (WHERE d.status='REJECTED')::text rejected,
+       count(*) FILTER (WHERE d.due_date IS NOT NULL AND d.due_date<current_date AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text overdue
        FROM daks d ${clause}
        GROUP BY COALESCE(d.branch,'Unassigned Branch') ORDER BY count(*) DESC,branch`,
       args
