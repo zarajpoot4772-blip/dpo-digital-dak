@@ -370,3 +370,8 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .metadata-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
 .metadata-dialog>form{width:min(600px,92vw)}
 @media(max-width:760px){.metadata-head{align-items:stretch;flex-direction:column;gap:6px}.metadata-head .secondary{align-self:flex-start}.metadata-edit-grid{grid-template-columns:1fr}}
+
+/* Click-to-place approval asset: any page tap sets the asset first, then it can be dragged for fine alignment. */
+.placement-pages .placement-paper{cursor:crosshair}
+.placement-pages .placed-stamp.draggable{cursor:grab}
+.placement-pages .placed-stamp.draggable:active{cursor:grabbing}

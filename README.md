@@ -49,6 +49,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 20. The document viewer no longer adds a watermark. Original PDF/image files are returned unchanged; the existing server-side role-based download/print permissions and audit logging remain active.
 21. The notification panel creates one daily SLA reminder for active Dak files assigned to the user when their due date is today, tomorrow or overdue.
 22. Admin, Clerk and DPO can correct active Dak metadata from File details without changing the diary number, branch or immutable files. Changes are audited and the responsible user is notified.
+23. In approval placement, clicking any visible PDF page automatically selects that page and places the signature or stamp at the clicked location. The asset can then be dragged for fine adjustment before approval.
 
 ## Security controls in this MVP
 
