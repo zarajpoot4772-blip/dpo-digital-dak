@@ -12,6 +12,7 @@ Review date: 19 August 2026
 - Original plus approved document version creation: passed
 - Role authorization checks: passed
 - Branch dashboard status summary and branch-scoped drill-down: passed
+- Return-for-correction and creator resubmission workflow: passed
 
 Run the automated workflow test with two terminals:
 

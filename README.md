@@ -53,6 +53,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 24. The server creates one automatic daily backup on the first dashboard request and Admin can view/download the server backup history. The temporary preview does not create backups. The dashboard request never fails if a backup has a transient storage error; the error is logged for review.
 25. Optional TOTP two-factor authentication is available from the profile shield button. Users scan a QR code, verify a 6-digit code, and must use the code at the next login; disabling 2FA requires the current password and a valid code.
 26. The Branch dashboard gives authorized users a branch-wise status board with submitted, pending at DPO, forwarded, returned, approved, rejected and overdue counts. Branch names open their server-scoped Dak list.
+27. DPO can use **Return for correction** instead of Reject. The file enters `CORRECTION_REQUIRED`, is assigned to its creator, and the creator can edit/add supporting documents then **Resubmit to DPO**. This loop remains auditable and does not finalize the Dak.
 
 ## Security controls in this MVP
 

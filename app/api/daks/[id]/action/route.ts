@@ -20,8 +20,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!dak) throw new Error('NOT_FOUND');
 
     if (user.role === 'OFFICER' && dak.assigned_to !== user.id) throw new Error('FORBIDDEN');
-    if (user.role === 'BRANCH_HEAD' && ((dak.branch !== user.branch && dak.assigned_to !== user.id) || !['REMARK','SEND_BACK'].includes(action))) {
+    if (user.role === 'BRANCH_HEAD' && ((dak.branch !== user.branch && dak.assigned_to !== user.id) || !['REMARK','SEND_BACK','RESUBMIT'].includes(action))) {
       throw new Error('FORBIDDEN');
+    }
+    if (dak.status === 'CORRECTION_REQUIRED' && ['APPROVE','REJECT','FORWARD','REASSIGN','SEND_BACK','ARCHIVE'].includes(action)) {
+      throw new Error('This file is awaiting correction from its creator');
     }
 
     let nextStatus = dak.status;
@@ -144,6 +147,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await db.query(
         `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
         [recipientId, dakId, `Dak ${dak.diary_number} was sent back by ${user.name}.`]
+      );
+    } else if (action === 'RETURN_FOR_CORRECTION') {
+      if (user.role !== 'DPO') throw new Error('FORBIDDEN');
+      if (['APPROVED','REJECTED','ARCHIVED'].includes(dak.status)) throw new Error('Finalized files cannot be returned for correction');
+      if (dak.status === 'CORRECTION_REQUIRED') throw new Error('This file is already awaiting correction');
+      const recipient = await db.query<{id:number;name:string}>(
+        `SELECT id,name FROM users WHERE id=$1 AND id<>$2 AND active=true AND role IN ('ADMIN','CLERK','BRANCH_HEAD')`,
+        [dak.created_by, user.id]
+      );
+      if (!recipient.rows[0]) throw new Error('The Dak creator is not available to receive corrections');
+      recipientId = recipient.rows[0].id;
+      nextStatus = 'CORRECTION_REQUIRED';
+      await db.query(
+        `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
+        [recipientId, dakId, `Dak ${dak.diary_number} was returned for correction by ${user.name}.`]
+      );
+    } else if (action === 'RESUBMIT') {
+      if (!['ADMIN','CLERK','BRANCH_HEAD'].includes(user.role)) throw new Error('FORBIDDEN');
+      if (dak.status !== 'CORRECTION_REQUIRED') throw new Error('Only a Dak awaiting correction can be resubmitted');
+      if (dak.assigned_to !== user.id && dak.created_by !== user.id) throw new Error('Only the correction recipient can resubmit this Dak');
+      const dpo = await db.query<{id:number;name:string}>(`SELECT id,name FROM users WHERE role='DPO' AND active=true ORDER BY id LIMIT 1`);
+      if (!dpo.rows[0]) throw new Error('No active DPO account is available');
+      recipientId = dpo.rows[0].id;
+      nextStatus = 'PENDING';
+      await db.query(
+        `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
+        [recipientId, dakId, `Dak ${dak.diary_number} was resubmitted for review by ${user.name}.`]
       );
     } else if (action === 'REMARK') {
       if (!remarks) throw new Error('Remarks cannot be empty');

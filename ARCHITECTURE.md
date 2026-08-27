@@ -35,6 +35,8 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 ```text
 PENDING ──open──> OPENED
 PENDING/OPENED/FORWARDED ──forward──> FORWARDED
+PENDING/OPENED/FORWARDED ──return for correction by DPO──> CORRECTION_REQUIRED
+CORRECTION_REQUIRED ──resubmit by creator──> PENDING
 PENDING/OPENED/FORWARDED ──approve by DPO──> APPROVED
 PENDING/OPENED/FORWARDED ──reject by DPO──> REJECTED
 APPROVED/REJECTED ──archive by Admin──> ARCHIVED

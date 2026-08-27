@@ -414,3 +414,23 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .branch-count.pending{background:#fff4e4;color:#9a631c}.branch-count.forwarded{background:#edf3f8;color:#406884}.branch-count.returned{background:#fff0dd;color:#98601a}.branch-count.approved{background:#eaf6f0;color:#176b49}.branch-count.rejected{background:#fbeceb;color:#a13b35}.branch-count.overdue.has-value{background:#fff0dd;color:#8d5a23}
 @media(max-width:1000px){.branch-summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.branch-summary-metrics{grid-template-columns:1fr 1fr;gap:9px}.branch-summary-metric{padding:11px}.branch-summary-metric b{font-size:22px}.branch-dashboard-table th,.branch-dashboard-table td{padding-inline:10px}.branch-dashboard-panel .panel-head{align-items:flex-start;gap:9px;flex-direction:column}.branch-dashboard-panel .panel-head .link{align-self:flex-start}}
+
+/* Correction loop: keep incomplete Dak separate from a final rejection. */
+.status.correction_required{background:#eeeafa;color:#5f4f91}
+.action.correction>span{background:#eeeafa;color:#5f4f91}
+.action.resubmit>span{background:#e8f4fb;color:#3c6f8d}
+.correction-note{margin:10px 0;padding:9px 11px;border-left:3px solid #6755a0;background:#f5f2fd;color:#594b82;border-radius:4px;font-size:10px}
+.branch-count.correction{background:#eeeafa;color:#5f4f91}
+
+/* Quick actions for the correction loop, including mobile where the right rail is hidden. */
+.quick-correction,.quick-resubmit{border:0;border-radius:6px;padding:8px 12px;font-size:10px;font-weight:800;color:#fff}
+.quick-correction{background:#6755a0}.quick-resubmit{background:#3c6f8d}
+.quick-correction:hover,.quick-resubmit:hover{filter:brightness(.92)}
+@media(min-width:761px){
+  .detail > .detail-head-actions{grid-template-columns:repeat(4,minmax(0,1fr)) 32px}
+  .detail > .detail-head-actions .quick-correction,.detail > .detail-head-actions .quick-resubmit{min-width:0;padding:8px 4px;font-size:9px;line-height:1.15;white-space:normal}
+}
+@media(max-width:760px){
+  .detail-head-actions{flex-wrap:wrap;row-gap:5px}
+  .detail-head-actions .quick-correction,.detail-head-actions .quick-resubmit{padding:7px 8px;font-size:9px}
+}

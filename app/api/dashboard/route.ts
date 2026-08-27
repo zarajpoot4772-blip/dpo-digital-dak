@@ -58,6 +58,7 @@ export async function GET() {
        count(*) FILTER (WHERE d.status IN ('PENDING','OPENED','RETURNED'))::text pending,
        count(*) FILTER (WHERE d.status='FORWARDED')::text forwarded,
        count(*) FILTER (WHERE d.status='RETURNED')::text returned,
+       count(*) FILTER (WHERE d.status='CORRECTION_REQUIRED')::text correction_required,
        count(*) FILTER (WHERE d.status='APPROVED')::text approved,
        count(*) FILTER (WHERE d.status='REJECTED')::text rejected,
        count(*) FILTER (WHERE d.status='ARCHIVED')::text archived,

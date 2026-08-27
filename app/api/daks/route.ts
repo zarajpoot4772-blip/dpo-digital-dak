@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     }
     if (status) {
       if (status === 'PENDING') where.push(`d.status IN ('PENDING','OPENED','RETURNED')`);
-      else if (['FORWARDED','APPROVED','REJECTED','ARCHIVED','RETURNED'].includes(status)) {
+      else if (['FORWARDED','APPROVED','REJECTED','ARCHIVED','RETURNED','CORRECTION_REQUIRED'].includes(status)) {
         args.push(status);
         where.push(`d.status=$${args.length}`);
       }
