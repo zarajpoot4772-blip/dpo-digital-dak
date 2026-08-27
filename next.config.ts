@@ -9,7 +9,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.e2b.app'],
-  serverExternalPackages: ['@electric-sql/pglite','tesseract.js','tesseract.js-core'],
+  serverExternalPackages: ['@electric-sql/pglite'],
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },
