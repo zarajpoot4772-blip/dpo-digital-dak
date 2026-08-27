@@ -147,7 +147,11 @@ const translations: Array<[string, string]> = ([
   ['No due date', 'آخری تاریخ مقرر نہیں'],
   ['days left', 'دن باقی'],
   ['days open', 'دن سے کھلی'],
-  ['Due', 'آخری تاریخ']
+  ['Due', 'آخری تاریخ'],
+  ['SLA alert', 'ایس ایل اے اطلاع'],
+  ['is overdue', 'کی میعاد گزر چکی ہے'],
+  ['is due today', 'آج مقرر ہے'],
+  ['is due tomorrow', 'کل مقرر ہے']
 ] as Array<[string, string]>).sort((a, b) => b[0].length - a[0].length);
 
 const originalText = new WeakMap<Text, string>();

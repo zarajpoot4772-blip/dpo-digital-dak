@@ -47,6 +47,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 18. The dashboard includes pending-ageing indicators, oldest-active-file shortcuts and branch workload bars. Counts remain server-scoped for Officer and Branch Head accounts.
 19. New Dak supports an optional due date. Dashboard, Advanced Search and Reports show due-date filters, overdue counts and days remaining without making the due date mandatory.
 20. The document viewer no longer adds a watermark. Original PDF/image files are returned unchanged; the existing server-side role-based download/print permissions and audit logging remain active.
+21. The notification panel creates one daily SLA reminder for active Dak files assigned to the user when their due date is today, tomorrow or overdue.
 
 ## Security controls in this MVP
 
