@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
 import { apiError, ipOf, mutationGuard, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
 import { approvedPdf, signatureStoragePath, storagePath } from '@/lib/files';
@@ -69,7 +68,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
       const reference = `DPO-APR-${new Date().getFullYear()}-${String(dakId).padStart(6, '0')}`;
       const filename = `DAAK-${String(dak.diary_number).replace(/[^a-zA-Z0-9-]/g, '-')}-approved-${Date.now()}.pdf`;
-      const output = path.join(process.cwd(), 'storage', 'derived', filename);
+      const output = storagePath('APPROVED', filename);
       let stamped;
       try {
         stamped = await approvedPdf(

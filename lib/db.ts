@@ -3,10 +3,10 @@ import bcrypt from 'bcryptjs';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
+import { dataRoot, snapshotPath, storageRoot, usingExternalRuntimeRoot } from './runtime-paths';
 
 type DB = PGlite;
 declare global { var __dpoDb: Promise<DB> | undefined; var __dpoPersist: Promise<void> | undefined; }
-const snapshotPath=path.join(process.cwd(),'data','pglite-data.tar');
 
 async function writeSnapshot(db:DB){
  if(process.env.PGLITE_MEMORY==='1')return;
@@ -36,13 +36,34 @@ async function makeSamplePdf(filePath:string){
  await fs.writeFile(filePath, await pdf.save());
 }
 
+async function migrateLegacyRuntimeData(){
+ if(!usingExternalRuntimeRoot)return;
+ const legacySnapshot=path.join(process.cwd(),'data','pglite-data.tar');
+ try{await fs.access(snapshotPath)}catch{
+  try{await fs.copyFile(legacySnapshot,snapshotPath)}catch{/* first deployment may have no legacy snapshot */}
+ }
+ for(const folder of ['originals','derived','signatures']){
+  const source=path.join(process.cwd(),'storage',folder);
+  const target=path.join(storageRoot,folder);
+  try{
+   const entries=await fs.readdir(source);
+   for(const name of entries){
+    if(name==='.gitkeep')continue;
+    const destination=path.join(target,path.basename(name));
+    try{await fs.access(destination)}catch{try{await fs.copyFile(path.join(source,name),destination)}catch{/* preserve an existing runtime file */}}
+   }
+  }catch{/* no legacy storage is normal on a new deployment */}
+ }
+}
+
 async function init(){
- await fs.mkdir(path.join(process.cwd(),'data'),{recursive:true});
- await fs.mkdir(path.join(process.cwd(),'storage','originals'),{recursive:true});
- await fs.mkdir(path.join(process.cwd(),'storage','derived'),{recursive:true});
- await fs.mkdir(path.join(process.cwd(),'storage','signatures'),{recursive:true});
+ await fs.mkdir(dataRoot,{recursive:true});
+ await fs.mkdir(path.join(storageRoot,'originals'),{recursive:true});
+ await fs.mkdir(path.join(storageRoot,'derived'),{recursive:true});
+ await fs.mkdir(path.join(storageRoot,'signatures'),{recursive:true});
+ await migrateLegacyRuntimeData();
  // Windows-compatible persistence: PostgreSQL runs in memory and is atomically
- // snapshotted to data/pglite-data.tar after durable workflow mutations.
+ // snapshotted to the runtime data directory after durable workflow mutations.
  let loadDataDir:Blob|undefined;
  if(process.env.PGLITE_MEMORY!=='1'){
   try{loadDataDir=new Blob([await fs.readFile(snapshotPath)]);}catch(error:any){if(error?.code!=='ENOENT')throw error;}
@@ -67,7 +88,7 @@ async function init(){
   const users=[['System Administrator','admin','Admin@12345','ADMIN','DPO Office','IT'],['District Police Officer','dpo','Dpo@12345','DPO','Police','DPO Office'],['Dak Clerk','clerk','Clerk@12345','CLERK','DPO Office','Dak Branch'],['SP Investigation','sp.inv','Officer@12345','OFFICER','Police','Investigation'],['Branch Head Operations','head.ops','Branch@12345','BRANCH_HEAD','DPO Office','Operations Branch']];
   for(const u of users) await db.query('INSERT INTO users(name,username,password_hash,role,department,branch) VALUES($1,$2,$3,$4,$5,$6)',[u[0],u[1],await bcrypt.hash(u[2],12),u[3],u[4],u[5]]);
   await db.exec(`INSERT INTO branches(name,code,department,head_user_id,created_by) SELECT 'Operations Branch','OPS','DPO Office',id,1 FROM users WHERE username='head.ops' ON CONFLICT(code) DO NOTHING;`);
-  const sample=path.join(process.cwd(),'storage','originals','DAAK-1254-original.pdf'); await makeSamplePdf(sample); const stat=await fs.stat(sample); const crypto=await import('crypto'); const sha=crypto.createHash('sha256').update(await fs.readFile(sample)).digest('hex');
+  const sample=path.join(storageRoot,'originals','DAAK-1254-original.pdf'); await makeSamplePdf(sample); const stat=await fs.stat(sample); const crypto=await import('crypto'); const sha=crypto.createHash('sha256').update(await fs.readFile(sample)).digest('hex');
   const d=await db.query<{id:number}>(`INSERT INTO daks(diary_number,diary_date,received_date,received_time,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks) VALUES('1254/2026','2026-08-18','2026-08-18','09:35','Monthly law and order coordination meeting','Home Department Punjab','SO(Admin)/2026/441','2026-08-16','Home Department','DPO Office','URGENT','OFFICIAL','PENDING',2,3,'For kind perusal and orders') RETURNING id`);
   await db.query(`INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by) VALUES($1,'ORIGINAL','coordination-letter.pdf','DAAK-1254-original.pdf','application/pdf',$2,$3,3)`,[d.rows[0].id,stat.size,sha]);
   await db.query(`INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status) VALUES($1,3,'CREATED','Dak entered and original document uploaded',NULL,'PENDING')`,[d.rows[0].id]);

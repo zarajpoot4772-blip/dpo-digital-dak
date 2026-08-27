@@ -6,6 +6,7 @@ import fontkit from '@pdf-lib/fontkit';
 import mammoth from 'mammoth';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { dataRoot, signaturePath, storagePath as runtimeStoragePath, storageRoot } from './runtime-paths';
 
 const execFileAsync=promisify(execFile);
 let officeConversionQueue:Promise<unknown>=Promise.resolve();
@@ -42,7 +43,7 @@ async function convertDocxTextFallback(bytes:Buffer,output:string){
 
 async function tryLibreOffice(sourcePath:string,output:string){
  const candidates=process.platform==='win32'?[process.env.LIBREOFFICE_PATH,'C:\\Program Files\\LibreOffice\\program\\soffice.exe','C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe','soffice.exe'].filter(Boolean) as string[]:[process.env.LIBREOFFICE_PATH,'libreoffice','soffice'].filter(Boolean) as string[];
- const tempDir=path.join(process.cwd(),'data',`docx-convert-${crypto.randomUUID()}`);await fs.mkdir(tempDir,{recursive:true});
+ const tempDir=path.join(dataRoot,`docx-convert-${crypto.randomUUID()}`);await fs.mkdir(tempDir,{recursive:true});
  try{
   for(const command of candidates){
    try{
@@ -84,12 +85,12 @@ export async function saveOriginal(file: File, diary: string) {
   const ext = normalizedType === 'application/pdf' ? '.pdf' : normalizedType === 'image/png' ? '.png' : normalizedType===DOCX_MIME?'.docx':'.jpg';
   const safeDiary = diary.replace(/[^a-zA-Z0-9-]/g, '-').slice(0, 80);
   const id=crypto.randomUUID();const stored = `DAAK-${safeDiary}-${id}-original${ext}`;
-  const storedPath = path.join(process.cwd(), 'storage', 'originals', stored);
+  const storedPath = path.join(storageRoot, 'originals', stored);
   await fs.writeFile(storedPath, bytes, { flag: 'wx' });
   const originalName=path.basename(file.name).replace(/[\r\n]/g, '').slice(0, 180) || `document${ext}`;
   let converted:undefined|{stored:string;storedPath:string;size:number;sha:string;type:string;original:string};
   if(isDocx){
-   const convertedStored=`DAAK-${safeDiary}-${id}-converted.pdf`;const convertedPath=path.join(process.cwd(),'storage','derived',convertedStored);
+   const convertedStored=`DAAK-${safeDiary}-${id}-converted.pdf`;const convertedPath=path.join(storageRoot,'derived',convertedStored);
    try{const pdfBytes=await convertDocxToPdf(bytes,storedPath,convertedPath);converted={stored:convertedStored,storedPath:convertedPath,size:pdfBytes.length,sha:crypto.createHash('sha256').update(pdfBytes).digest('hex'),type:'application/pdf',original:originalName.replace(/\.docx$/i,'')+'-converted.pdf'}}catch(error){await removeStoredFile(storedPath);await removeStoredFile(convertedPath);throw new Error(`Word to PDF conversion failed: ${error instanceof Error?error.message:'unknown error'}`)}
   }
   return {stored,storedPath,size:bytes.length,sha,type:normalizedType,original:originalName,converted};
@@ -109,12 +110,12 @@ export async function saveDpoSignature(file:File,userId:number,assetType:'SIGNAT
  const image=await probe.embedPng(bytes);
  if(image.width<80||image.height<30)throw new Error(`${label} image resolution is too small`);
  const stored=`dpo-${assetType.toLowerCase()}-${userId}-${crypto.randomUUID()}.png`;
- const storedPath=path.join(process.cwd(),'storage','signatures',stored);
+ const storedPath=path.join(storageRoot,'signatures',stored);
  await fs.writeFile(storedPath,bytes,{flag:'wx'});
  return {stored,storedPath,size:bytes.length,sha:crypto.createHash('sha256').update(bytes).digest('hex')};
 }
 
-export function signatureStoragePath(name:string){return path.join(process.cwd(),'storage','signatures',path.basename(name));}
+export function signatureStoragePath(name:string){return signaturePath(name);}
 
 export async function approvedPdf(sourcePath:string,mime:string,output:string,info:{signaturePath?:string;stampPath?:string;remarks?:string;page:number;x:number;y:number}){
  let pdf:PDFDocument;
@@ -152,4 +153,4 @@ export async function approvedPdf(sourcePath:string,mime:string,output:string,in
  return {size:bytes.length,sha:crypto.createHash('sha256').update(bytes).digest('hex'),pageCount:pages.length};
 }
 
-export function storagePath(type:string,name:string){return path.join(process.cwd(),'storage',type==='ORIGINAL'?'originals':'derived',path.basename(name));}
+export function storagePath(type:string,name:string){return runtimeStoragePath(type,name);}
