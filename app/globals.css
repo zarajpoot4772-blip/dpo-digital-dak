@@ -363,3 +363,10 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 
 .report-metric.overdue{border-top-color:#8d5a23}.report-metric.overdue b{color:#8d5a23}
 @media(min-width:1001px){.metrics{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
+.metadata-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.metadata-head h3{flex:1;margin-top:0}
+.metadata-head .secondary{flex:0 0 auto;padding:7px 10px;font-size:10px}
+.metadata-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.metadata-dialog>form{width:min(600px,92vw)}
+@media(max-width:760px){.metadata-head{align-items:stretch;flex-direction:column;gap:6px}.metadata-head .secondary{align-self:flex-start}.metadata-edit-grid{grid-template-columns:1fr}}

@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
   try {
     await mutationGuard(req);
     const user = await requireUser(['ADMIN', 'CLERK', 'BRANCH_HEAD']);
+    if (!req.headers.get('content-type')?.toLowerCase().includes('multipart/form-data')) throw new Error('Invalid Dak upload form');
     const form = await req.formData();
     const get = (key: string) => String(form.get(key) || '').trim();
     const file = form.get('attachment');
