@@ -3,16 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getDb } from './db';
 export type Role='ADMIN'|'DPO'|'CLERK'|'OFFICER'|'BRANCH_HEAD';
-export type User={id:number,name:string,username:string,role:Role,department:string|null,branch:string|null};
+export type User={id:number,name:string,username:string,role:Role,department:string|null,branch:string|null,totp_enabled?:boolean};
 const COOKIE='dpo_session';
 export async function currentUser(previewToken?:string|null):Promise<User|null>{
  const c=await cookies(); const h=await headers(); const bearer=h.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]; const token=c.get(COOKIE)?.value||(process.env.NODE_ENV!=='production'?(previewToken||bearer):undefined);const db=await getDb();
  if(!token&&process.env.PGLITE_MEMORY==='1'){
   const ref=h.get('referer')||'';
-  if(ref.includes('/portal')){const demo=await db.query<User>(`SELECT id,name,username,role,department,branch FROM users WHERE username='dpo' AND active=true`);return demo.rows[0]||null}
+  if(ref.includes('/portal')){const demo=await db.query<User>(`SELECT id,name,username,role,department,branch,totp_enabled FROM users WHERE username='dpo' AND active=true`);return demo.rows[0]||null}
  }
  if(!token)return null;
- const r=await db.query<User>(`SELECT u.id,u.name,u.username,u.role,u.department,u.branch FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() AND u.active=true`,[token]); return r.rows[0]||null;
+ const r=await db.query<User>(`SELECT u.id,u.name,u.username,u.role,u.department,u.branch,u.totp_enabled FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() AND u.active=true`,[token]); return r.rows[0]||null;
 }
 export async function requireUser(roles?:Role[],previewToken?:string|null){const u=await currentUser(previewToken);if(!u)throw new Error('UNAUTHORIZED');if(roles&&!roles.includes(u.role))throw new Error('FORBIDDEN');return u;}
 export async function createSession(userId:number,req:NextRequest){const db=await getDb();const token=crypto.randomBytes(32).toString('hex');await db.query('DELETE FROM sessions WHERE expires_at<now()');await db.query(`INSERT INTO sessions(id,user_id,expires_at,ip,user_agent) VALUES($1,$2,now()+interval '8 hours',$3,$4)`,[token,userId,ipOf(req),req.headers.get('user-agent')?.slice(0,300)]);return token;}
