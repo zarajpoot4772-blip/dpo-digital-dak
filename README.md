@@ -49,6 +49,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 20. The document viewer no longer adds a watermark. Original PDF/image files are returned unchanged; the existing server-side role-based download/print permissions and audit logging remain active.
 21. The notification panel creates one daily SLA reminder for active Dak files assigned to the user when their due date is today, tomorrow or overdue.
 22. Admin, Clerk and DPO can correct active Dak metadata from File details without changing the diary number, branch or immutable files. Changes are audited and the responsible user is notified.
+23. The server creates one automatic daily backup on the first dashboard request and Admin can view/download the server backup history. The temporary preview does not create backups. The dashboard request never fails if a backup has a transient storage error; the error is logged for review.
 
 ## Security controls in this MVP
 
