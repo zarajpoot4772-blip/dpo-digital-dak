@@ -51,13 +51,23 @@ export async function GET() {
        GREATEST(0,current_date-d.received_date) DESC,d.updated_at ASC LIMIT 8`, args
     );
     const branchLoad = await db.query(
-      `SELECT COALESCE(d.branch,'Unassigned Branch') branch,count(*)::text total,
+      `SELECT COALESCE(d.branch,'Unassigned Branch') branch,
+       count(*)::text submitted,
+       count(*)::text total,
+       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED'))::text pending_at_dpo,
+       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED','RETURNED'))::text pending,
+       count(*) FILTER (WHERE d.status='FORWARDED')::text forwarded,
+       count(*) FILTER (WHERE d.status='RETURNED')::text returned,
+       count(*) FILTER (WHERE d.status='APPROVED')::text approved,
+       count(*) FILTER (WHERE d.status='REJECTED')::text rejected,
+       count(*) FILTER (WHERE d.status='ARCHIVED')::text archived,
        count(*) FILTER (WHERE d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text active,
        count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent,
        count(*) FILTER (WHERE d.due_date IS NOT NULL AND d.due_date<current_date AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text overdue
        FROM daks d ${aliasedScope} GROUP BY COALESCE(d.branch,'Unassigned Branch')
-       ORDER BY count(*) DESC,branch LIMIT 12`, args
+       ORDER BY count(*) DESC,branch LIMIT 50`, args
     );
+    const branchDashboard = branchLoad.rows;
 
     return NextResponse.json({
       counts: Object.fromEntries(statuses.rows.map(row => [row.status, Number(row.count)])),
@@ -67,7 +77,8 @@ export async function GET() {
       overdue: Number(overdue.rows[0].count),
       recent: recent.rows,
       ageing: ageing.rows,
-      branch_load: branchLoad.rows
+      branch_load: branchLoad.rows,
+      branch_dashboard: branchDashboard
     });
   } catch (error) {
     return apiError(error);

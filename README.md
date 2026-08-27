@@ -52,6 +52,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 23. In approval placement, clicking any visible PDF page automatically selects that page and places the signature or stamp at the clicked location. The asset can then be dragged for fine adjustment before approval.
 24. The server creates one automatic daily backup on the first dashboard request and Admin can view/download the server backup history. The temporary preview does not create backups. The dashboard request never fails if a backup has a transient storage error; the error is logged for review.
 25. Optional TOTP two-factor authentication is available from the profile shield button. Users scan a QR code, verify a 6-digit code, and must use the code at the next login; disabling 2FA requires the current password and a valid code.
+26. The Branch dashboard gives authorized users a branch-wise status board with submitted, pending at DPO, forwarded, returned, approved, rejected and overdue counts. Branch names open their server-scoped Dak list.
 
 ## Security controls in this MVP
 

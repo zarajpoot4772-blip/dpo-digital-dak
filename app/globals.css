@@ -388,3 +388,29 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .twofactor-secret{display:block;width:100%;padding:9px 10px;margin-top:2px;background:#f3f7f5;border:1px dashed #9db9ab;border-radius:5px;color:#245942;word-break:break-all;font-size:11px}
 .twofactor-cancel{width:100%;margin-top:10px}
 .login-back{margin-top:9px}
+
+/* Branch dashboard: a compact, scroll-safe status board for office and tablet use. */
+.branch-summary-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:13px;margin-bottom:18px}
+.branch-summary-metric{background:#fff;border:1px solid #dfe7e2;border-top:3px solid #315d4b;border-radius:8px;padding:14px 16px}
+.branch-summary-metric small{display:block;color:#76837d;font-size:10px}
+.branch-summary-metric b{display:block;margin-top:7px;font:26px Georgia;color:#1d4b39}
+.branch-summary-metric.pending{border-top-color:#bb7b25}.branch-summary-metric.pending b{color:#9a631c}
+.branch-summary-metric.approved{border-top-color:#208157}.branch-summary-metric.approved b{color:#176b49}
+.branch-summary-metric.overdue{border-top-color:#8d5a23}.branch-summary-metric.overdue b{color:#8d5a23}
+.branch-dashboard-panel{overflow:hidden}
+.branch-dashboard-scroll{overflow-x:auto}
+.branch-dashboard-table{width:100%;min-width:900px;border-collapse:collapse}
+.branch-dashboard-table th{background:#f7faf8;color:#718078;text-align:left;font-size:9px;letter-spacing:.4px;text-transform:uppercase;padding:12px 14px;border-bottom:1px solid #e2e9e5;white-space:nowrap}
+.branch-dashboard-table td{padding:13px 14px;border-bottom:1px solid #edf1ef;color:#4e6057;font-size:11px;vertical-align:middle;white-space:nowrap}
+.branch-dashboard-table tbody tr:last-child td{border-bottom:0}
+.branch-dashboard-table tbody tr:hover{background:#f8fbf9}
+.branch-dashboard-table td:not(:first-child){text-align:center}
+.branch-dashboard-table th:not(:first-child){text-align:center}
+.branch-name-button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;border:0;background:transparent;color:#1e503c;padding:0;text-align:left;min-width:150px}
+.branch-name-button b{font-size:11px;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.branch-name-button small{color:#7b8982;font-size:9px}
+.branch-name-button:hover b{text-decoration:underline;color:#126345}
+.branch-count{display:inline-grid;place-items:center;min-width:29px;min-height:25px;padding:3px 6px;border-radius:5px;background:#f1f5f3;color:#4d6258;font-weight:800;font-size:11px}
+.branch-count.pending{background:#fff4e4;color:#9a631c}.branch-count.forwarded{background:#edf3f8;color:#406884}.branch-count.returned{background:#fff0dd;color:#98601a}.branch-count.approved{background:#eaf6f0;color:#176b49}.branch-count.rejected{background:#fbeceb;color:#a13b35}.branch-count.overdue.has-value{background:#fff0dd;color:#8d5a23}
+@media(max-width:1000px){.branch-summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.branch-summary-metrics{grid-template-columns:1fr 1fr;gap:9px}.branch-summary-metric{padding:11px}.branch-summary-metric b{font-size:22px}.branch-dashboard-table th,.branch-dashboard-table td{padding-inline:10px}.branch-dashboard-panel .panel-head{align-items:flex-start;gap:9px;flex-direction:column}.branch-dashboard-panel .panel-head .link{align-self:flex-start}}

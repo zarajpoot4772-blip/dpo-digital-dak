@@ -27,6 +27,7 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 - Forwarding/custody tracking
 - Append-only action audit trail
 - In-app notifications
+- Branch dashboard and workload analytics
 - Administrative users
 
 ## 3. State machine
@@ -101,8 +102,8 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 - PGlite is single-process prototype storage, not production multi-user PostgreSQL.
 - Login throttling is process-local; production needs shared durable lockout.
 - Controlled stamp is not PKI.
-- No OCR, email/SMS, antivirus quarantine, Excel/PDF reporting, restore UI or multi-office tenancy yet.
+- No OCR, email/SMS, antivirus quarantine, Excel/PDF report export or multi-office tenancy yet; restore and CSV reporting are available in the prototype.
 - Device/IP evidence is best-effort behind a trusted reverse proxy.
-- User deactivation and password-reset screens are the next admin increment.
+- Password lifecycle hardening and durable account lockout remain future production work.
 
 These are explicit deployment gates, not silent security assumptions.

@@ -8,9 +8,10 @@ Review date: 19 August 2026
 - Next.js production build: passed
 - npm dependency audit: 0 known vulnerabilities
 - Local HTTP login and cookie session: passed
-- Automated API/workflow smoke test: 15 checks passed
+- Automated API/workflow smoke test: 20 checks passed
 - Original plus approved document version creation: passed
 - Role authorization checks: passed
+- Branch dashboard status summary and branch-scoped drill-down: passed
 
 Run the automated workflow test with two terminals:
 
@@ -75,31 +76,24 @@ Admin deliberately does not inherit DPO approval authority.
 
 ### Priority 2 — operational value
 
-1. **Branch dashboard** with submitted, pending-at-DPO, returned, approved and rejected counts.
-2. **Return for correction** as a separate state instead of using Reject for incomplete documents.
-3. **Due dates and reminders** with overdue escalation to DPO/Admin.
-4. **Multiple attachments** and attachment categories such as main letter, annexure and supporting evidence.
-5. **Internal file noting sheet** separate from the immutable incoming document.
-6. **OCR and full-text search** for scanned Urdu/English documents, subject to confidentiality policy.
-7. **Reports module** with daily/monthly, branch-wise, officer-wise and pendency-aging reports; PDF/Excel export.
-8. **Dispatch/outward Dak** and reply linkage to the original inward Dak.
-9. **Bulk scanning/upload queue** with duplicate detection using diary number and document hash.
-10. **Configurable workflow templates** for different Dak types and offices.
+1. **Return for correction** as a separately labelled state instead of using Reject for incomplete documents.
+2. **Internal file noting sheet** separate from the immutable incoming document.
+3. **OCR** for scanned Urdu/English documents, subject to confidentiality policy.
+4. **Dispatch/outward Dak** and reply linkage to the original inward Dak.
+5. **Bulk scanning/upload queue** with duplicate detection using diary number and document hash.
+6. **Configurable workflow templates** for different Dak types and offices.
 
 ### Priority 3 — usability and scale
 
-1. Urdu/English interface toggle.
-2. Tablet-optimized document review.
-3. Watermarked role-based downloads and print controls.
-4. Delegation/acting-charge rules with start/end dates.
-5. Multi-office tenancy with district/office isolation.
-6. Email/SMS integrations only through approved government gateways.
-7. Disaster-recovery dashboard and backup verification alerts.
+1. Delegation/acting-charge rules with start/end dates.
+2. Multi-office tenancy with district/office isolation.
+3. Email/SMS integrations only through approved government gateways.
+4. Disaster-recovery dashboard and backup verification alerts.
 
 ## Known prototype boundaries
 
 - PGlite is for a single-process local prototype; it is not the production database.
 - The controlled approval PDF is not a legal PKI signature.
-- Antivirus, OCR, 2FA, password reset and formal reports are not yet implemented.
+- Malware scanning, full OCR for image-only scans, independent off-site backups and formal PKI signing are not yet implemented; optional TOTP, password reset and CSV reports are available in the prototype.
 - The Arena preview uses temporary in-memory data and preview-specific session transport. Local `npm run dev` uses normal cookie authentication and persistent prototype storage.
 - Production deployment must not use seeded demo passwords.
