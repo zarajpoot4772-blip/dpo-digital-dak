@@ -319,3 +319,8 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .supporting-upload>.primary{align-self:flex-start;margin-top:3px}
 .supporting-version>span{color:#1d7652}
 @media(max-width:760px){.supporting-upload>.primary{width:100%}}
+
+.viewer-tools{flex-wrap:wrap;row-gap:5px}
+.viewer-tools>span{min-width:0;overflow-wrap:anywhere}
+.version-switch{flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:760px){.version-switch{justify-content:flex-start}}

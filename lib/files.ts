@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import mammoth from 'mammoth';
 import { execFile } from 'child_process';
@@ -154,3 +154,17 @@ export async function approvedPdf(sourcePath:string,mime:string,output:string,in
 }
 
 export function storagePath(type:string,name:string){return runtimeStoragePath(type,name);}
+
+function watermarkText(value:string){return value.replace(/[^\x20-\x7E]/g,'?').slice(0,180)}
+
+export async function watermarkedDocument(sourcePath:string,mime:string,watermark:string){
+ let pdf:PDFDocument;
+ if(mime==='application/pdf')pdf=await PDFDocument.load(await fs.readFile(sourcePath));
+ else if(mime==='image/png'||mime==='image/jpeg'){
+  pdf=await PDFDocument.create();const bytes=await fs.readFile(sourcePath);const image=mime==='image/png'?await pdf.embedPng(bytes):await pdf.embedJpg(bytes);const page=pdf.addPage([595,842]);const scale=Math.min(515/image.width,760/image.height);page.drawImage(image,{x:(595-image.width*scale)/2,y:(842-image.height*scale)/2,width:image.width*scale,height:image.height*scale});
+ }else throw new Error('This file type does not have a PDF preview');
+ const font=await pdf.embedFont(StandardFonts.Helvetica);const label=watermarkText(watermark);for(const page of pdf.getPages()){
+  const {width,height}=page.getSize();const size=Math.max(10,Math.min(17,width/34));for(let y=height*.18;y<height*.95;y+=Math.max(120,height*.2))page.drawText(label,{x:Math.max(-width*.15,-80),y,size,font,color:rgb(.72,.77,.74),rotate:degrees(32)});page.drawText('DPO DIGITAL DAK · CONTROLLED COPY',{x:14,y:12,size:7,font,color:rgb(.35,.42,.38)});
+ }
+ return Buffer.from(await pdf.save());
+}
