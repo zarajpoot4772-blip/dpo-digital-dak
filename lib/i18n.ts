@@ -128,7 +128,18 @@ const translations: Array<[string, string]> = ([
   ['Received to', 'وصولی اختتام'],
   ['Search records', 'ریکارڈ تلاش کریں'],
   ['Clear', 'صاف کریں'],
-  ['No data for these filters.', 'ان فلٹرز کے لیے کوئی ڈیٹا نہیں۔']
+  ['No data for these filters.', 'ان فلٹرز کے لیے کوئی ڈیٹا نہیں۔'],
+  ['Pending ageing', 'زیرِ التوا کا دورانیہ'],
+  ['Oldest active Dak first', 'سب سے پرانی فعال ڈاک پہلے'],
+  ['Open queue →', 'قطار کھولیں →'],
+  ['Branch workload', 'برانچ ورک لوڈ'],
+  ['Total files and active workload', 'کل فائلیں اور فعال ورک لوڈ'],
+  ['No active Dak files.', 'کوئی فعال ڈاک فائل نہیں۔'],
+  ['No branch workload data.', 'برانچ ورک لوڈ کا کوئی ڈیٹا نہیں۔'],
+  ['active', 'فعال'],
+  ['urgent', 'ہنگامی'],
+  ['Total', 'کل'],
+  ['Active', 'فعال']
 ] as Array<[string, string]>).sort((a, b) => b[0].length - a[0].length);
 
 const originalText = new WeakMap<Text, string>();

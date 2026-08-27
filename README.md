@@ -44,6 +44,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 15. PDF/image previews and permitted download/print copies are server-watermarked with classification, role and user identity. Admin, DPO and Clerk have download/print copy controls; Officer and Branch Head receive view-only access, while source/approval access remains restricted. The immutable source version is never modified.
 16. Keyword search includes indexed PDF text and DOCX text, with startup indexing for older documents. Admin can manually rebuild the index from Advanced Search when needed. Image-only scans remain searchable by Dak metadata until an approved OCR engine is integrated.
 17. The login screen and portal include an English/Urdu language toggle. The choice is stored in the browser and keeps the document review layout stable.
+18. The dashboard includes pending-ageing indicators, oldest-active-file shortcuts and branch workload bars. Counts remain server-scoped for Officer and Branch Head accounts.
 
 ## Security controls in this MVP
 

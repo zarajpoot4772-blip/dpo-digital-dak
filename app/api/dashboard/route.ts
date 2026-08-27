@@ -35,13 +35,30 @@ export async function GET() {
        FROM daks d LEFT JOIN users u ON u.id=d.assigned_to ${aliasedScope}
        ORDER BY d.updated_at DESC LIMIT 6`, args
     );
+    const activeScope = aliasedScope ? `${aliasedScope} AND` : 'WHERE';
+    const ageing = await db.query(
+      `SELECT d.id,d.diary_number,d.subject,d.branch,d.priority,d.status,d.received_date,
+       GREATEST(0,current_date-d.received_date)::text pending_days
+       FROM daks d ${activeScope} d.status NOT IN ('APPROVED','REJECTED','ARCHIVED')
+       ORDER BY CASE d.priority WHEN 'URGENT' THEN 0 WHEN 'HIGH' THEN 1 ELSE 2 END,
+       GREATEST(0,current_date-d.received_date) DESC,d.updated_at ASC LIMIT 8`, args
+    );
+    const branchLoad = await db.query(
+      `SELECT COALESCE(d.branch,'Unassigned Branch') branch,count(*)::text total,
+       count(*) FILTER (WHERE d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text active,
+       count(*) FILTER (WHERE d.priority='URGENT' AND d.status NOT IN ('APPROVED','REJECTED','ARCHIVED'))::text urgent
+       FROM daks d ${aliasedScope} GROUP BY COALESCE(d.branch,'Unassigned Branch')
+       ORDER BY count(*) DESC,branch LIMIT 12`, args
+    );
 
     return NextResponse.json({
       counts: Object.fromEntries(statuses.rows.map(row => [row.status, Number(row.count)])),
       total,
       today: Number(today.rows[0].count),
       urgent: Number(urgent.rows[0].count),
-      recent: recent.rows
+      recent: recent.rows,
+      ageing: ageing.rows,
+      branch_load: branchLoad.rows
     });
   } catch (error) {
     return apiError(error);
