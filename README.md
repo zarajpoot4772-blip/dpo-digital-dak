@@ -39,6 +39,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 10. Branch Heads can upload and track only their own branch Dak; submissions are automatically assigned to DPO and approval/signing remains unavailable to Branch Heads.
 11. Admin can download a complete database/private-file backup ZIP and restore a trusted backup. Restore creates a server-side safety copy before replacing the active runtime; restore is disabled in the temporary Arena preview.
 12. Every signed-in user can change their own password. Admin can reset another active user's password; both operations revoke the affected user's existing sessions and enforce the password policy.
+13. DPO/Admin can reassign an active Dak to another authorized user. Assigned Officers and Branch Heads can send it back to the active DPO with optional remarks; returned files are visible in the Sent Back queue and remain auditable.
 
 ## Security controls in this MVP
 

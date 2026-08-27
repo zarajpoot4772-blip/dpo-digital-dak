@@ -30,8 +30,8 @@ export async function GET(req: NextRequest) {
       where.push(`(d.diary_number ILIKE $${args.length} OR d.subject ILIKE $${args.length} OR d.sender ILIKE $${args.length} OR d.letter_number ILIKE $${args.length})`);
     }
     if (status) {
-      if (status === 'PENDING') where.push(`d.status IN ('PENDING','OPENED')`);
-      else if (['FORWARDED','APPROVED','REJECTED','ARCHIVED'].includes(status)) {
+      if (status === 'PENDING') where.push(`d.status IN ('PENDING','OPENED','RETURNED')`);
+      else if (['FORWARDED','APPROVED','REJECTED','ARCHIVED','RETURNED'].includes(status)) {
         args.push(status);
         where.push(`d.status=$${args.length}`);
       }

@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     const summary = await db.query<any>(
       `SELECT count(*)::text total,
-       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED'))::text pending,
+       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED','RETURNED'))::text pending,
        count(*) FILTER (WHERE d.status='FORWARDED')::text forwarded,
        count(*) FILTER (WHERE d.status='APPROVED')::text approved,
        count(*) FILTER (WHERE d.status='REJECTED')::text rejected,
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
     );
     const byBranch = await db.query<any>(
       `SELECT COALESCE(d.branch,'Unassigned Branch') branch,count(*)::text total,
-       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED'))::text pending,
+       count(*) FILTER (WHERE d.status IN ('PENDING','OPENED','RETURNED'))::text pending,
        count(*) FILTER (WHERE d.status='FORWARDED')::text forwarded,
        count(*) FILTER (WHERE d.status='APPROVED')::text approved,
        count(*) FILTER (WHERE d.status='REJECTED')::text rejected

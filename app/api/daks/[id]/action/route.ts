@@ -20,7 +20,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!dak) throw new Error('NOT_FOUND');
 
     if (user.role === 'OFFICER' && dak.assigned_to !== user.id) throw new Error('FORBIDDEN');
-    if (user.role === 'BRANCH_HEAD' && ((dak.branch !== user.branch && dak.assigned_to !== user.id) || action !== 'REMARK')) {
+    if (user.role === 'BRANCH_HEAD' && ((dak.branch !== user.branch && dak.assigned_to !== user.id) || !['REMARK','SEND_BACK'].includes(action))) {
       throw new Error('FORBIDDEN');
     }
 
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (action === 'OPEN') {
       if (!['DPO', 'OFFICER'].includes(user.role) || dak.assigned_to !== user.id) throw new Error('FORBIDDEN');
-      if (dak.status !== 'PENDING') return NextResponse.json({ ok: true, status: dak.status });
+      if (!['PENDING','RETURNED'].includes(dak.status)) return NextResponse.json({ ok: true, status: dak.status });
       nextStatus = 'OPENED';
     } else if (action === 'APPROVE') {
       if (user.role !== 'DPO') throw new Error('FORBIDDEN');
@@ -118,6 +118,32 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await db.query(
         `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
         [recipientId, dakId, `Dak ${dak.diary_number} was forwarded to you by ${user.name}.`]
+      );
+    } else if (action === 'REASSIGN') {
+      if (!['DPO','ADMIN'].includes(user.role)) throw new Error('FORBIDDEN');
+      if (['APPROVED','REJECTED','ARCHIVED'].includes(dak.status)) throw new Error('Finalized files cannot be reassigned');
+      recipientId = Number(body.to_user_id);
+      if (!recipientId || recipientId === user.id) throw new Error('A different reassignment recipient is required');
+      const recipient = await db.query<any>(
+        `SELECT id,name FROM users WHERE id=$1 AND active=true AND role IN ('DPO','OFFICER','CLERK','BRANCH_HEAD')`,
+        [recipientId]
+      );
+      if (!recipient.rows[0]) throw new Error('Reassignment recipient not found or not eligible');
+      nextStatus = 'FORWARDED';
+      await db.query(
+        `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
+        [recipientId, dakId, `Dak ${dak.diary_number} was reassigned to you by ${user.name}.`]
+      );
+    } else if (action === 'SEND_BACK') {
+      if (!['OFFICER','BRANCH_HEAD'].includes(user.role)) throw new Error('FORBIDDEN');
+      if (['APPROVED','REJECTED','ARCHIVED'].includes(dak.status)) throw new Error('Finalized files cannot be sent back');
+      const dpo = await db.query<{id:number;name:string}>(`SELECT id,name FROM users WHERE role='DPO' AND active=true ORDER BY id LIMIT 1`);
+      if (!dpo.rows[0]) throw new Error('No active DPO account is available');
+      recipientId = dpo.rows[0].id;
+      nextStatus = 'RETURNED';
+      await db.query(
+        `INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`,
+        [recipientId, dakId, `Dak ${dak.diary_number} was sent back by ${user.name}.`]
       );
     } else if (action === 'REMARK') {
       if (!remarks) throw new Error('Remarks cannot be empty');

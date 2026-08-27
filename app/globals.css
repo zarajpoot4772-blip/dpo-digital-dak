@@ -306,3 +306,8 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .breakdown-row b{color:#1c513c;font-size:12px}
 @media(max-width:1000px){.advanced-search-form{grid-template-columns:repeat(2,minmax(140px,1fr))}.report-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.report-grid{grid-template-columns:1fr}}
 @media(max-width:760px){.advanced-search-panel{padding:14px}.advanced-search-form{grid-template-columns:1fr}.advanced-query,.advanced-search-actions{grid-column:auto}.advanced-search-actions{justify-content:flex-start;align-items:center}.report-filter-panel{padding:14px}.report-filters{display:grid;grid-template-columns:1fr 1fr}.report-filters label{min-width:0}.report-filters button{grid-column:1/-1}.report-metrics{grid-template-columns:1fr 1fr;gap:9px}.report-metric{padding:11px}.report-metric b{font-size:22px}}
+
+.status.returned{background:#fff0dd;color:#98601a}
+.action.reassign>span{background:#eeeafa;color:#5f4f91}
+.action.sendback>span{background:#fff0dd;color:#98601a}
+.sendback-note{margin:10px 0;padding:9px 11px;border-left:3px solid #bb7b25;background:#fff7e9;color:#7f5b27;border-radius:4px;font-size:10px}
