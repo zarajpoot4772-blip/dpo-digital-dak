@@ -1,6 +1,6 @@
 # DPO Digital Dak — Project Review
 
-Review date: 19 August 2026
+Review date: 28 August 2026
 
 ## Verification completed
 
@@ -8,7 +8,8 @@ Review date: 19 August 2026
 - Next.js production build: passed
 - npm dependency audit: 0 known vulnerabilities
 - Local HTTP login and cookie session: passed
-- Automated API/workflow smoke test: 37 checks passed
+- Automated API/workflow smoke test: 44 checks passed
+- Full role/API access matrix: all five roles passed; Admin-only routes correctly denied to DPO
 - Original plus approved document version creation: passed
 - Role authorization checks: passed
 - Branch dashboard status summary and branch-scoped drill-down: passed

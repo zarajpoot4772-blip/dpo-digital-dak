@@ -39,6 +39,7 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 ```text
 PENDING ──open──> OPENED
 PENDING/OPENED/FORWARDED ──forward──> FORWARDED
+FORWARDED ──send back by Officer/Branch Head──> RETURNED
 PENDING/OPENED/FORWARDED ──return for correction by DPO──> CORRECTION_REQUIRED
 CORRECTION_REQUIRED ──resubmit by creator──> PENDING
 PENDING/OPENED/FORWARDED ──approve by DPO──> APPROVED
@@ -50,16 +51,18 @@ APPROVED/REJECTED ──archive by Admin──> ARCHIVED
 
 ## 4. Authorization matrix
 
-| Capability | Admin | DPO | Clerk | Officer |
-|---|:---:|:---:|:---:|:---:|
-| Register/upload Dak | ✓ | — | ✓ | — |
-| View permitted Dak | all | assigned/office | office/status | assigned |
-| View protected document | ✓ | ✓ | ✓ | assigned |
-| Approve/reject | —* | ✓ | — | — |
-| Forward | ✓ | ✓ | — | assigned |
-| Add workflow remark | ✓ | ✓ | ✓** | assigned |
-| Audit log screen | ✓ | — | — | — |
-| Create users | ✓ | — | — | — |
+| Capability | Admin | DPO | Clerk | Officer | Branch Head |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Register/upload Dak | ✓ | — | ✓ | — | own branch |
+| View permitted Dak | all | assigned/office | office/status | assigned | own/forwarded |
+| View protected document | ✓ | ✓ | ✓ | assigned | own/forwarded |
+| Approve/reject | —* | ✓ | — | — | — |
+| Forward | ✓ | ✓ | — | assigned | — |
+| Add workflow remark | ✓ | ✓ | ✓** | assigned | own/forwarded |
+| Send back to DPO | — | — | — | assigned | own/forwarded |
+| Outward dispatch | ✓ | ✓ | ✓ | — | — |
+| Audit log screen | ✓ | — | — | — | — |
+| Create users | ✓ | — | — | — | — |
 
 \* Admin does not inherit DPO signing authority.  
 \** Current MVP allows a clerk to record a remark but not to alter approval state. Department policy may narrow this.
@@ -101,7 +104,7 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 - Document store: encrypted incremental backup with version retention and integrity checks.
 - Recovery objectives must be approved by the department (RPO/RTO are not assumed).
 - Backup administration must be separated from application roles.
-- Confidentiality labels should later drive download, watermark and forwarding policies.
+- Confidentiality labels should later drive download and forwarding policies.
 
 ## 9. Known MVP boundaries
 
