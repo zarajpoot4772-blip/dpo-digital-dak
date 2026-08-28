@@ -30,6 +30,7 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 - Branch dashboard and workload analytics
 - Return-for-correction workflow
 - Internal file noting sheet
+- Outward dispatch register and reply linkage
 - Administrative users
 
 ## 3. State machine

@@ -16,6 +16,7 @@ Review date: 19 August 2026
 - First-login password change, expiry and password-history enforcement: passed
 - Durable login lockout threshold and persistence path: passed
 - Permission-scoped append-only internal file notes: passed
+- Approved-Dak outward dispatch register and inward linkage: passed
 
 Run the automated workflow test with two terminals:
 

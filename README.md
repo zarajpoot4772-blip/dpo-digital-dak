@@ -57,6 +57,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 28. New and Admin-reset accounts must change their temporary password at first sign-in. Passwords expire after 90 days, and the current plus previous five password hashes cannot be reused. A forced-password session can access only the password-change route until the new password is saved.
 29. Failed logins use a durable database-backed throttle: five failures for the same username and source IP temporarily lock access for 15 minutes. Successful login clears that throttle entry.
 30. Authorized users can use the **Internal notes** tab to add append-only file notes separate from the immutable incoming document. Notes are permission-scoped, audited as `NOTE_ADDED`, and disabled after finalization.
+31. Admin, DPO and Clerk can register an **outward dispatch** linked to an approved/archived inward Dak. Dispatch number, date, recipient, mode, tracking/reference and remarks are stored append-only and audited as `DISPATCH_CREATED`.
 
 ## Security controls in this MVP
 
