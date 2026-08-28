@@ -85,7 +85,7 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 /* Scrollable approval preview: all pages are available in one pane, while the selected page carries the draggable asset. */
 .placement-pages-scroll{width:100%;max-height:calc(100dvh - 300px);overflow-y:auto;overflow-x:hidden;padding:0 7px 8px;background:#343b38;border:1px solid #9eaca5;border-radius:6px;scroll-behavior:smooth}.placement-pages{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}.placement-pages .placement-paper{width:min(100%,560px);margin:0;flex:0 0 auto}.placement-pages .placement-paper.selected{border-color:#1d7652;box-shadow:0 0 0 3px #bfe5d0,0 7px 22px #17332638}.placement-pages .placement-paper:not(.selected){opacity:.96}.placement-progress{position:sticky;bottom:4px;z-index:4;width:max-content;max-width:100%;margin:-2px auto 0;padding:6px 10px;border-radius:5px;background:#173f31ed;color:#fff;font-size:9px;text-align:center}.placement-pages .page-label{top:8px;left:8px;right:auto;font-size:8px}.approval-dialog .placement-pages-scroll{margin-top:6px}.approval-dialog .placement-hint{margin-top:5px}@media(max-width:760px){.placement-pages-scroll{max-height:calc(100dvh - 315px);padding:0 5px 7px}.placement-pages .placement-paper{width:100%}.placement-pages .page-label{font-size:7px}}
 
-/* Desktop/tablet detail layout: keep the portrait document preview and header controls in one full-width review pane. */
+/* Desktop/tablet detail layout: keep all Dak text and actions in one right rail and reserve the central pane for the portrait document preview. */
 @media (min-width:761px){
  .detail{display:block;position:relative;width:min(1440px,96vw);height:96vh;overflow:hidden}
  .detail-head{position:absolute;top:0;right:0;width:300px;height:116px;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:5px;padding:9px 11px;overflow:hidden;z-index:6;background:#fff;border-left:1px solid #dbe2de;border-bottom:1px solid #e0e5e2}
@@ -101,8 +101,8 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .viewer-area:has(.document-reader)>.viewer-tools,.viewer-area:has(.document-reader)>.document-reader{width:100%;max-width:100%}.viewer-area:has(.document-reader)>.document-reader{height:calc(100dvh - 205px);min-height:360px}
 }
 
-/* Final review layout: the protected document owns the full portrait stage;
-   Dak title, tabs and workflow actions stay together in the header. */
+/* Final review layout: the protected document owns the full left portrait stage;
+   Dak title, tabs and workflow actions stay together in one right rail. */
 @media (min-width:761px){
   .detail{
     display:grid;
@@ -477,28 +477,14 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .dispatch-form input:focus,.dispatch-form select:focus,.dispatch-form textarea:focus{border-color:#18704f;box-shadow:0 0 0 3px #18704f17}
 @media(max-width:760px){.dispatch-pane{padding:16px 12px}.dispatch-card-head time{margin-left:0;width:100%}.dispatch-card dl{grid-template-columns:105px minmax(0,1fr)}.dispatch-form-grid{grid-template-columns:1fr}.dispatch-form-grid .span2{grid-column:auto}.dispatch-form .note-form-footer{align-items:stretch;flex-direction:column}.dispatch-form .note-form-footer .primary{width:100%}}
 
-/* Final review layout without the duplicate right action sidebar. */
-.detail-actions-wrap{position:relative;flex:1 1 112px;max-width:160px}
-.quick-more{border:0;border-radius:6px;padding:8px 12px;font-size:10px;font-weight:800;color:#244b3b;background:#e8efec}
-.quick-more:hover{background:#d9e8e0}
-.detail-actions-wrap .quick-more{width:100%;height:36px}
-.detail-action-menu{position:absolute;top:calc(100% + 5px);right:0;z-index:30;min-width:180px;padding:5px;background:#fff;border:1px solid #d6e1db;border-radius:7px;box-shadow:0 12px 28px #172b231f}
-.detail-action-menu button{width:100%;display:block;border:0;border-radius:4px;background:#fff;color:#2d4b3e;padding:9px 10px;text-align:left;font-size:10px;font-weight:750;white-space:nowrap}
-.detail-action-menu button:hover{background:#eef6f1;color:#126345}
+/* Keep the compact header buttons equal while the full Authorized actions rail remains available. */
 @media(min-width:761px){
- .detail{grid-template-columns:minmax(0,1fr)}
- .detail > .detail-head,.detail > .detail-tabs{grid-column:1}
- .detail > .detail-body > .viewer-area{grid-column:1}
- .detail > .detail-head-actions{display:flex;width:100%;flex-wrap:wrap;justify-content:flex-end;align-items:stretch;gap:6px}
- .detail > .detail-head-actions .quick-approve,.detail > .detail-head-actions .quick-reject,.detail > .detail-head-actions .quick-correction,.detail > .detail-head-actions .quick-resubmit,.detail > .detail-head-actions .quick-forward,.detail > .detail-head-actions .quick-more{display:inline-flex;align-items:center;justify-content:center;flex:1 1 112px;min-width:112px;max-width:160px;height:36px;padding:0 10px;white-space:nowrap;line-height:1}
- .detail > .detail-head-actions .close{flex:0 0 36px;width:36px;height:36px}
+ .detail > .detail-head-actions{display:flex;flex-wrap:nowrap;gap:5px;align-items:stretch}
+ .detail > .detail-head-actions .quick-approve,.detail > .detail-head-actions .quick-reject,.detail > .detail-head-actions .quick-correction,.detail > .detail-head-actions .quick-resubmit,.detail > .detail-head-actions .quick-forward{flex:1 1 0;width:auto;min-width:0;min-height:34px;padding:6px 3px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.1}
+ .detail > .detail-head-actions .close{flex:0 0 32px;width:32px;height:34px}
 }
 @media(max-width:760px){
  .detail-head-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:5px;align-items:stretch}
- .detail-head-actions .quick-approve,.detail-head-actions .quick-reject,.detail-head-actions .quick-correction,.detail-head-actions .quick-resubmit,.detail-head-actions .quick-forward,.detail-head-actions .quick-more{width:100%;min-width:0;max-width:none;height:34px;padding:0 5px;font-size:8px;white-space:nowrap;line-height:1}
- .detail-actions-wrap{width:100%;max-width:none;min-width:0}
- .detail-actions-wrap .quick-more{height:34px}
- .detail-head-actions .close{width:34px;height:34px;justify-self:end;font-size:17px}
- .detail-action-menu{right:0;min-width:170px}
+ .detail-head-actions .quick-approve,.detail-head-actions .quick-reject,.detail-head-actions .quick-correction,.detail-head-actions .quick-resubmit,.detail-head-actions .quick-forward{width:100%;min-width:0;min-height:32px;padding:5px 4px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.05;font-size:8px}
+ .detail-head-actions .close{width:32px;height:32px;justify-self:end}
 }
-@media(min-width:761px){.detail > .detail-body > .viewer-area{grid-row:3}}

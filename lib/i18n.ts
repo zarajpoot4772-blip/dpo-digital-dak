@@ -1,7 +1,7 @@
 export type Language = 'en' | 'ur';
 
 // The layout remains stable in both languages so the document review pane and
-// header controls do not jump when a user switches language.
+// action rail do not jump when a user switches language.
 const translations: Array<[string, string]> = ([
   ['Sign in securely →', 'محفوظ سائن اِن کریں →'],
   ['Sign in to your account', 'اپنے اکاؤنٹ میں سائن اِن کریں'],
@@ -143,8 +143,6 @@ const translations: Array<[string, string]> = ([
   ['Download copy ↗', 'کاپی ڈاؤن لوڈ کریں ↗'],
   ['Print copy ↗', 'کاپی پرنٹ کریں ↗'],
   ['Take action', 'کارروائی کریں'],
-  ['More', 'مزید'],
-
   ['AUTHORIZED ACTIONS', 'مجاز کارروائیاں'],
   ['Each action is timestamped and permanently audited.', 'ہر کارروائی وقت کے ساتھ مستقل آڈٹ میں محفوظ ہوتی ہے۔'],
   ['Approve', 'منظور کریں'],
