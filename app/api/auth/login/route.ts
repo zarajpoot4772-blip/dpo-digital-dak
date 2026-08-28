@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { getDb } from '@/lib/db';
 import { createSession, mutationGuard, sessionResponse } from '@/lib/auth';
+import { isPasswordExpired, passwordExpiryDate } from '@/lib/password';
 
 export const runtime = 'nodejs';
 const attempts = new Map<string, { n: number; until: number }>();
@@ -18,8 +19,8 @@ export async function POST(req: NextRequest) {
     const { username, password } = await req.json();
     if (typeof username !== 'string' || typeof password !== 'string') throw new Error('Invalid credentials');
     const db = await getDb();
-    const result = await db.query<{ id: number; password_hash: string; active: boolean; name: string; role: string; totp_enabled: boolean }>(
-      'SELECT id,password_hash,active,name,role,totp_enabled FROM users WHERE lower(username)=lower($1)',
+    const result = await db.query<{ id: number; password_hash: string; active: boolean; name: string; role: string; totp_enabled: boolean; must_change_password: boolean; password_changed_at: string | Date | null }>(
+      'SELECT id,password_hash,active,name,role,totp_enabled,must_change_password,password_changed_at FROM users WHERE lower(username)=lower($1)',
       [username.trim()]
     );
     const user = result.rows[0];
@@ -28,14 +29,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid username or password' }, { status: 401 });
     }
     attempts.delete(key);
+    const passwordExpired = isPasswordExpired(user.password_changed_at);
+    const passwordChangeRequired = Boolean(user.must_change_password) || passwordExpired;
+    const passwordExpiresAt = passwordExpiryDate(user.password_changed_at)?.toISOString() || null;
+    const passwordStatus = { password_change_required: passwordChangeRequired, password_expired: passwordExpired, password_expires_at: passwordExpiresAt };
     if (user.totp_enabled) {
       await db.query('DELETE FROM mfa_challenges WHERE expires_at<now()');
       const challenge = crypto.randomBytes(32).toString('hex');
       await db.query('INSERT INTO mfa_challenges(id,user_id,expires_at) VALUES($1,$2,now()+interval \'10 minutes\')', [challenge, user.id]);
-      return NextResponse.json({ mfa_required: true, challenge_token: challenge, user: { id: user.id, name: user.name, role: user.role } });
+      return NextResponse.json({ mfa_required: true, challenge_token: challenge, user: { id: user.id, name: user.name, role: user.role, ...passwordStatus } });
     }
     const token = await createSession(user.id, req);
-    return sessionResponse({ user: { id: user.id, name: user.name, role: user.role, totp_enabled: user.totp_enabled } }, token);
+    return sessionResponse({ user: { id: user.id, name: user.name, role: user.role, totp_enabled: user.totp_enabled, ...passwordStatus } }, token);
   } catch (error) {
     console.error('LOGIN_ERROR', error);
     const detail = error instanceof Error ? error.message : 'Unknown database error';

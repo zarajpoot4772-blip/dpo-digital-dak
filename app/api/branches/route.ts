@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
 
     const result = await db.transaction(async tx => {
       const user = await tx.query<{ id: number }>(
-        `INSERT INTO users(name,username,password_hash,role,department,branch)
-         VALUES($1,$2,$3,'BRANCH_HEAD',$4,$5) RETURNING id`,
+        `INSERT INTO users(name,username,password_hash,must_change_password,password_changed_at,role,department,branch)
+         VALUES($1,$2,$3,true,now(),'BRANCH_HEAD',$4,$5) RETURNING id`,
         [headName,username,await bcrypt.hash(password,12),department,name]
       );
       const branch = await tx.query<{ id: number }>(

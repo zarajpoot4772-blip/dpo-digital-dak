@@ -434,3 +434,7 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
   .detail-head-actions{flex-wrap:wrap;row-gap:5px}
   .detail-head-actions .quick-correction,.detail-head-actions .quick-resubmit{padding:7px 8px;font-size:9px}
 }
+
+/* Password lifecycle indicators and the mandatory first-login dialog. */
+.password-due{background:#fff0dd;color:#98601a}
+.password-required{background:#fff7e9;border:1px solid #ead2aa;color:#765322;padding:10px 11px;border-radius:6px;font-size:10px!important}

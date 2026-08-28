@@ -13,6 +13,7 @@ Review date: 19 August 2026
 - Role authorization checks: passed
 - Branch dashboard status summary and branch-scoped drill-down: passed
 - Return-for-correction and creator resubmission workflow: passed
+- First-login password change, expiry and password-history enforcement: passed
 
 Run the automated workflow test with two terminals:
 
@@ -65,8 +66,8 @@ Admin deliberately does not inherit DPO approval authority.
 ### Priority 1 — before an office pilot
 
 1. **PostgreSQL server migration** — replace embedded PGlite with PostgreSQL 16+, connection pooling and formal migrations.
-2. **Password lifecycle** — force first-login password change, password expiry policy, reset by Admin and password history.
-3. **Durable account lockout** — store failed attempts/lock state in PostgreSQL rather than process memory.
+2. **Durable account lockout** — store failed attempts/lock state in PostgreSQL rather than process memory.
+3. **Password recovery policy** — add an approved account-recovery process and administrative separation around resets; first-login change, 90-day expiry and password history are implemented in the prototype.
 4. **Two-factor authentication** — TOTP or department-approved identity provider for DPO and Admin.
 5. **Malware quarantine** — scan every upload before it becomes visible; verify file structure in addition to magic bytes.
 6. **Encrypted storage and backups** — encrypted document volume, daily DB/file backup, off-host copy and documented restore drills.
@@ -95,6 +96,6 @@ Admin deliberately does not inherit DPO approval authority.
 
 - PGlite is for a single-process local prototype; it is not the production database.
 - The controlled approval PDF is not a legal PKI signature.
-- Malware scanning, full OCR for image-only scans, independent off-site backups and formal PKI signing are not yet implemented; optional TOTP, password reset and CSV reports are available in the prototype.
+- Malware scanning, full OCR for image-only scans, independent off-site backups and formal PKI signing are not yet implemented; password lifecycle, optional TOTP, password reset and CSV reports are available in the prototype.
 - The Arena preview uses temporary in-memory data and preview-specific session transport. Local `npm run dev` uses normal cookie authentication and persistent prototype storage.
 - Production deployment must not use seeded demo passwords.

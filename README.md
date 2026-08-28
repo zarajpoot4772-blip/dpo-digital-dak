@@ -54,6 +54,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 25. Optional TOTP two-factor authentication is available from the profile shield button. Users scan a QR code, verify a 6-digit code, and must use the code at the next login; disabling 2FA requires the current password and a valid code.
 26. The Branch dashboard gives authorized users a branch-wise status board with submitted, pending at DPO, forwarded, returned, approved, rejected and overdue counts. Branch names open their server-scoped Dak list.
 27. DPO can use **Return for correction** instead of Reject. The file enters `CORRECTION_REQUIRED`, is assigned to its creator, and the creator can edit/add supporting documents then **Resubmit to DPO**. This loop remains auditable and does not finalize the Dak.
+28. New and Admin-reset accounts must change their temporary password at first sign-in. Passwords expire after 90 days, and the current plus previous five password hashes cannot be reused. A forced-password session can access only the password-change route until the new password is saved.
 
 ## Security controls in this MVP
 
@@ -61,6 +62,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 - HTTP-only, SameSite=Strict, 8-hour expiring opaque sessions
 - Origin validation on mutations (CSRF defense) and secure-cookie mode in production
 - bcrypt cost-12 password hashing
+- Forced first-login/expired-password change, 90-day expiry and five-password reuse history
 - Basic 5-failure / 15-minute login throttling for the local process
 - Parameterized PostgreSQL queries
 - Strict upload MIME/size allowlist, randomized server-side names and basename normalization
@@ -83,7 +85,7 @@ Before office use:
 - Deploy on hardened Linux/Windows server behind HTTPS reverse proxy on office LAN.
 - Move to managed PostgreSQL with least-privilege DB user, encrypted backup and tested restore.
 - Store documents on encrypted volume; apply OS ACLs and immutable/WORM retention where policy requires.
-- Replace in-process throttle with shared account/IP lockout and add forced password change, password policy and 2FA.
+- Replace in-process throttle with shared account/IP lockout and apply an approved password-recovery and 2FA policy; first-login change, 90-day expiry and password history are already present in the prototype.
 - Add malware scanning and file-content signature verification to upload quarantine.
 - Add CSRF tokens as defense-in-depth and a strict Content Security Policy after deployment host is known.
 - Integrate department-approved PKI/HSM/token service before calling any output a legal digital signature.

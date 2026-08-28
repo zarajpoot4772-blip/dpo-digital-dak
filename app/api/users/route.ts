@@ -8,7 +8,9 @@ export async function GET() {
     const requester = await requireUser();
     const db = await getDb();
     const result = await db.query(
-      `SELECT id,name,username,role,department,branch,active FROM users
+      `SELECT id,name,username,role,department,branch,active,must_change_password,password_changed_at,
+       (password_changed_at IS NULL OR password_changed_at<=now()-interval '90 days') password_expired
+       FROM users
        ${requester.role === 'ADMIN' ? '' : 'WHERE active=true'} ORDER BY active DESC,role,name`
     );
     return NextResponse.json({users:result.rows});
@@ -33,8 +35,8 @@ export async function POST(req: NextRequest) {
     const db = await getDb();
     try {
       const result = await db.query<{id:number}>(
-        `INSERT INTO users(name,username,password_hash,role,department,branch)
-         VALUES($1,$2,$3,$4,$5,$6) RETURNING id`,
+        `INSERT INTO users(name,username,password_hash,must_change_password,password_changed_at,role,department,branch)
+         VALUES($1,$2,$3,true,now(),$4,$5,$6) RETURNING id`,
         [name,username,await bcrypt.hash(password,12),role,String(body.department||'').slice(0,120),String(body.branch||'').slice(0,120)]
       );
       await persistDb();
