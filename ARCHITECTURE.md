@@ -28,6 +28,8 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 - Append-only action audit trail
 - In-app notifications
 - Branch dashboard and workload analytics
+- Return-for-correction workflow
+- Internal file noting sheet
 - Administrative users
 
 ## 3. State machine

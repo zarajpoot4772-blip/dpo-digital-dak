@@ -56,6 +56,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 27. DPO can use **Return for correction** instead of Reject. The file enters `CORRECTION_REQUIRED`, is assigned to its creator, and the creator can edit/add supporting documents then **Resubmit to DPO**. This loop remains auditable and does not finalize the Dak.
 28. New and Admin-reset accounts must change their temporary password at first sign-in. Passwords expire after 90 days, and the current plus previous five password hashes cannot be reused. A forced-password session can access only the password-change route until the new password is saved.
 29. Failed logins use a durable database-backed throttle: five failures for the same username and source IP temporarily lock access for 15 minutes. Successful login clears that throttle entry.
+30. Authorized users can use the **Internal notes** tab to add append-only file notes separate from the immutable incoming document. Notes are permission-scoped, audited as `NOTE_ADDED`, and disabled after finalization.
 
 ## Security controls in this MVP
 

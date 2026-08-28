@@ -15,6 +15,7 @@ Review date: 19 August 2026
 - Return-for-correction and creator resubmission workflow: passed
 - First-login password change, expiry and password-history enforcement: passed
 - Durable login lockout threshold and persistence path: passed
+- Permission-scoped append-only internal file notes: passed
 
 Run the automated workflow test with two terminals:
 
@@ -79,12 +80,10 @@ Admin deliberately does not inherit DPO approval authority.
 
 ### Priority 2 — operational value
 
-1. **Return for correction** as a separately labelled state instead of using Reject for incomplete documents.
-2. **Internal file noting sheet** separate from the immutable incoming document.
-3. **OCR** for scanned Urdu/English documents, subject to confidentiality policy.
-4. **Dispatch/outward Dak** and reply linkage to the original inward Dak.
-5. **Bulk scanning/upload queue** with duplicate detection using diary number and document hash.
-6. **Configurable workflow templates** for different Dak types and offices.
+1. **OCR** for scanned Urdu/English documents, subject to confidentiality policy.
+2. **Dispatch/outward Dak** and reply linkage to the original inward Dak.
+3. **Bulk scanning/upload queue** with duplicate detection using diary number and document hash.
+4. **Configurable workflow templates** for different Dak types and offices.
 
 ### Priority 3 — usability and scale
 

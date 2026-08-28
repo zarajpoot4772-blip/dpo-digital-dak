@@ -438,3 +438,21 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 /* Password lifecycle indicators and the mandatory first-login dialog. */
 .password-due{background:#fff0dd;color:#98601a}
 .password-required{background:#fff7e9;border:1px solid #ead2aa;color:#765322;padding:10px 11px;border-radius:6px;font-size:10px!important}
+
+/* Internal file noting sheet: append-only notes kept separate from immutable documents. */
+.notes-pane{background:#fff;min-height:100%;padding:24px;max-width:900px;margin:auto}
+.notes-head h3{font:18px Georgia;color:#1b4535;border-bottom:1px solid #e3e8e5;padding-bottom:10px;margin:0 0 6px}
+.notes-head p{color:#73807b;font-size:10px;line-height:1.5;margin:0 0 16px}
+.notes-list{display:flex;flex-direction:column;gap:9px}
+.note-card{border:1px solid #dce5e0;border-left:3px solid #237a56;border-radius:6px;background:#fbfdfc;padding:11px 13px}
+.note-card-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#2b493c;font-size:10px}
+.note-card-head span{background:#e8efec;color:#5d7068;padding:2px 5px;border-radius:3px;font-size:8px}
+.note-card-head time{margin-left:auto;color:#84918b;font-size:9px}
+.note-card p{white-space:pre-wrap;color:#485c52;font-size:11px;line-height:1.55;margin:8px 0 0}
+.note-form{margin-top:18px;padding-top:15px;border-top:1px solid #e3eae6}
+.note-form label{display:flex;flex-direction:column;gap:8px;font-size:11px;font-weight:750;color:#34443e}
+.note-form textarea{border:1px solid #ced6d2;border-radius:7px;padding:11px 12px;background:#fff;outline:0;color:#16251f;resize:vertical;min-height:100px}
+.note-form textarea:focus{border-color:#18704f;box-shadow:0 0 0 3px #18704f17}
+.note-form-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}
+.note-form-footer small{color:#7b8982;font-size:9px}
+@media(max-width:760px){.notes-pane{padding:16px 12px}.note-card-head time{margin-left:0;width:100%}.note-form-footer{align-items:stretch;flex-direction:column}.note-form-footer .primary{width:100%}}
