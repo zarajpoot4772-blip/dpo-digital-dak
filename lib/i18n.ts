@@ -174,12 +174,11 @@ const translations: Array<[string, string]> = ([
   ['Password', 'پاس ورڈ'],
   ['Change required', 'تبدیلی ضروری ہے'],
   ['Current', 'موجودہ'],
-  ['For security, replace your temporary or expired password before using the workspace.', 'سیکیورٹی کے لیے ورک اسپیس استعمال کرنے سے پہلے عارضی یا زائد المیعاد پاس ورڈ تبدیل کریں۔'],
+  ['For security, replace your temporary password before using the workspace.', 'سیکیورٹی کے لیے ورک اسپیس استعمال کرنے سے پہلے عارضی پاس ورڈ تبدیل کریں۔'],
   ['The temporary password must be changed at first sign-in.', 'عارضی پاس ورڈ کو پہلی مرتبہ سائن اِن پر تبدیل کرنا ضروری ہے۔'],
   ['Password changed. Please sign in again.', 'پاس ورڈ تبدیل ہو گیا۔ براہِ کرم دوبارہ سائن اِن کریں۔'],
   ['Password reset successfully. The user must sign in and change the temporary password.', 'پاس ورڈ ری سیٹ ہو گیا۔ صارف کو سائن اِن کر کے عارضی پاس ورڈ تبدیل کرنا ہوگا۔'],
   ['They must sign in and change the temporary password.', 'انہیں سائن اِن کر کے عارضی پاس ورڈ تبدیل کرنا ہوگا۔'],
-  ['New password was used recently. Choose a different password', 'نیا پاس ورڈ حال ہی میں استعمال ہو چکا ہے۔ مختلف پاس ورڈ منتخب کریں۔'],
 
   ['MANAGEMENT INFORMATION', 'انتظامی معلومات'],
   ['Dak Reports', 'ڈاک رپورٹس'],

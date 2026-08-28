@@ -109,6 +109,6 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 - Controlled stamp is not PKI.
 - No OCR, email/SMS, antivirus quarantine, Excel/PDF report export or multi-office tenancy yet; restore and CSV reporting are available in the prototype.
 - Device/IP evidence is best-effort behind a trusted reverse proxy.
-- Durable account lockout and an approved password-recovery policy remain future production work; first-login change, 90-day expiry and password history are implemented in the prototype.
+- Durable account lockout and an approved password-recovery policy remain future production work; first-login change is implemented in the prototype, while periodic expiry and password-history reuse restrictions are intentionally disabled.
 
 These are explicit deployment gates, not silent security assumptions.

@@ -8,8 +8,7 @@ export async function GET() {
     const requester = await requireUser();
     const db = await getDb();
     const result = await db.query(
-      `SELECT id,name,username,role,department,branch,active,must_change_password,password_changed_at,
-       (password_changed_at IS NULL OR password_changed_at<=now()-interval '90 days') password_expired
+      `SELECT id,name,username,role,department,branch,active,must_change_password
        FROM users
        ${requester.role === 'ADMIN' ? '' : 'WHERE active=true'} ORDER BY active DESC,role,name`
     );

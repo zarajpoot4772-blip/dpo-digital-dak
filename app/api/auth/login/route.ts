@@ -3,7 +3,6 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { getDb, persistDb } from '@/lib/db';
 import { createSession, ipOf, mutationGuard, sessionResponse } from '@/lib/auth';
-import { isPasswordExpired, passwordExpiryDate } from '@/lib/password';
 
 export const runtime = 'nodejs';
 const MAX_LOGIN_FAILURES = 5;
@@ -33,8 +32,8 @@ export async function POST(req: NextRequest) {
     const lockKey = throttleKey(loginName, sourceIp);
     const db = await getDb();
     await db.query(`DELETE FROM login_throttle WHERE updated_at<now()-interval '1 day'`);
-    const existingThrottle = await db.query<{ failed_count: number; locked_until: string | Date | null }>(
-      'SELECT failed_count,locked_until FROM login_throttle WHERE lock_key=$1',
+    const existingThrottle = await db.query<{ locked_until: string | Date | null }>(
+      'SELECT locked_until FROM login_throttle WHERE lock_key=$1',
       [lockKey]
     );
     const lockedUntil = existingThrottle.rows[0]?.locked_until;
@@ -42,13 +41,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Account access temporarily locked. Try again later.' }, { status: 429 });
     }
 
-    const result = await db.query<{ id: number; password_hash: string; active: boolean; name: string; role: string; totp_enabled: boolean; must_change_password: boolean; password_changed_at: string | Date | null }>(
-      'SELECT id,password_hash,active,name,role,totp_enabled,must_change_password,password_changed_at FROM users WHERE lower(username)=lower($1)',
+    const result = await db.query<{ id: number; password_hash: string; active: boolean; name: string; role: string; totp_enabled: boolean; must_change_password: boolean }>(
+      'SELECT id,password_hash,active,name,role,totp_enabled,must_change_password FROM users WHERE lower(username)=lower($1)',
       [loginName]
     );
     const user = result.rows[0];
     if (!user || !user.active || !(await bcrypt.compare(password, user.password_hash))) {
-      const failure = await db.query<{ failed_count: number; locked_until: string | Date | null }>(
+      const failure = await db.query<{ locked_until: string | Date | null }>(
         `INSERT INTO login_throttle(lock_key,username,ip,failed_count,locked_until,updated_at)
          VALUES($1,$2,$3,1,NULL,now())
          ON CONFLICT(lock_key) DO UPDATE SET
@@ -59,7 +58,7 @@ export async function POST(req: NextRequest) {
              ELSE login_throttle.locked_until
            END,
            updated_at=now()
-         RETURNING failed_count,locked_until`,
+         RETURNING locked_until`,
         [lockKey, loginName, sourceIp, MAX_LOGIN_FAILURES]
       );
       await persistThrottle();
@@ -71,10 +70,7 @@ export async function POST(req: NextRequest) {
 
     await db.query('DELETE FROM login_throttle WHERE lock_key=$1', [lockKey]);
     await persistThrottle();
-    const passwordExpired = isPasswordExpired(user.password_changed_at);
-    const passwordChangeRequired = Boolean(user.must_change_password) || passwordExpired;
-    const passwordExpiresAt = passwordExpiryDate(user.password_changed_at)?.toISOString() || null;
-    const passwordStatus = { password_change_required: passwordChangeRequired, password_expired: passwordExpired, password_expires_at: passwordExpiresAt };
+    const passwordStatus = { password_change_required: Boolean(user.must_change_password) };
     if (user.totp_enabled) {
       await db.query('DELETE FROM mfa_challenges WHERE expires_at<now()');
       const challenge = crypto.randomBytes(32).toString('hex');

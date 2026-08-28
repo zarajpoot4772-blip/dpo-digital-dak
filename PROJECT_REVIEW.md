@@ -13,7 +13,7 @@ Review date: 19 August 2026
 - Role authorization checks: passed
 - Branch dashboard status summary and branch-scoped drill-down: passed
 - Return-for-correction and creator resubmission workflow: passed
-- First-login password change, expiry and password-history enforcement: passed
+- First-login password change and Admin-reset enforcement: passed
 - Durable login lockout threshold and persistence path: passed
 - Permission-scoped append-only internal file notes: passed
 - Approved-Dak outward dispatch register and inward linkage: passed
@@ -70,7 +70,7 @@ Admin deliberately does not inherit DPO approval authority.
 
 1. **PostgreSQL server migration** — replace embedded PGlite with PostgreSQL 16+, connection pooling and formal migrations.
 2. **Durable account lockout in production** — the prototype now stores failed attempts/lock state in its database; production should move this table to managed PostgreSQL with shared policy.
-3. **Password recovery policy** — add an approved account-recovery process and administrative separation around resets; first-login change, 90-day expiry and password history are implemented in the prototype.
+3. **Password recovery policy** — add an approved account-recovery process and administrative separation around resets; first-login change is implemented in the prototype.
 4. **Two-factor authentication** — TOTP or department-approved identity provider for DPO and Admin.
 5. **Malware quarantine** — scan every upload before it becomes visible; verify file structure in addition to magic bytes.
 6. **Encrypted storage and backups** — encrypted document volume, daily DB/file backup, off-host copy and documented restore drills.

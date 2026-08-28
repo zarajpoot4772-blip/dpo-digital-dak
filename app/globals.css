@@ -436,7 +436,7 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 }
 
 /* Password lifecycle indicators and the mandatory first-login dialog. */
-.password-due{background:#fff0dd;color:#98601a}
+.password-change-required{background:#fff0dd;color:#98601a}
 .password-required{background:#fff7e9;border:1px solid #ead2aa;color:#765322;padding:10px 11px;border-radius:6px;font-size:10px!important}
 
 /* Internal file noting sheet: append-only notes kept separate from immutable documents. */

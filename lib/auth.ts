@@ -2,7 +2,6 @@ import { cookies, headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getDb } from './db';
-import { isPasswordExpired, passwordExpiryDate } from './password';
 
 export type Role='ADMIN'|'DPO'|'CLERK'|'OFFICER'|'BRANCH_HEAD';
 export type User={
@@ -15,21 +14,15 @@ export type User={
   totp_enabled?:boolean;
   must_change_password?:boolean;
   password_change_required?:boolean;
-  password_expired?:boolean;
-  password_changed_at?:string|null;
-  password_expires_at?:string|null;
 };
 const COOKIE='dpo_session';
-type PasswordUser=User&{must_change_password?:boolean;password_changed_at?:unknown};
+
+type PasswordUser=User&{must_change_password?:boolean};
 
 function decorateUser(row:PasswordUser):User{
- const expired=isPasswordExpired(row.password_changed_at);
- const expiry=passwordExpiryDate(row.password_changed_at);
  return {
   ...row,
-  password_change_required:Boolean(row.must_change_password)||expired,
-  password_expired:expired,
-  password_expires_at:expiry?.toISOString()||null
+  password_change_required:Boolean(row.must_change_password)
  };
 }
 
@@ -37,10 +30,10 @@ export async function currentUser(previewToken?:string|null):Promise<User|null>{
  const c=await cookies(); const h=await headers(); const bearer=h.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]; const token=c.get(COOKIE)?.value||(process.env.NODE_ENV!=='production'?(previewToken||bearer):undefined);const db=await getDb();
  if(!token&&process.env.PGLITE_MEMORY==='1'){
   const ref=h.get('referer')||'';
-  if(ref.includes('/portal')){const demo=await db.query<PasswordUser>(`SELECT id,name,username,role,department,branch,totp_enabled,must_change_password,password_changed_at FROM users WHERE username='dpo' AND active=true`);return demo.rows[0]?decorateUser(demo.rows[0]):null}
+  if(ref.includes('/portal')){const demo=await db.query<PasswordUser>(`SELECT id,name,username,role,department,branch,totp_enabled,must_change_password FROM users WHERE username='dpo' AND active=true`);return demo.rows[0]?decorateUser(demo.rows[0]):null}
  }
  if(!token)return null;
- const r=await db.query<PasswordUser>(`SELECT u.id,u.name,u.username,u.role,u.department,u.branch,u.totp_enabled,u.must_change_password,u.password_changed_at FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() AND u.active=true`,[token]); return r.rows[0]?decorateUser(r.rows[0]):null;
+ const r=await db.query<PasswordUser>(`SELECT u.id,u.name,u.username,u.role,u.department,u.branch,u.totp_enabled,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() AND u.active=true`,[token]); return r.rows[0]?decorateUser(r.rows[0]):null;
 }
 export async function requireUser(roles?:Role[],previewToken?:string|null,options?:{allowPasswordChange?:boolean}){const u=await currentUser(previewToken);if(!u)throw new Error('UNAUTHORIZED');if(roles&&!roles.includes(u.role))throw new Error('FORBIDDEN');if(!options?.allowPasswordChange&&u.password_change_required)throw new Error('PASSWORD_CHANGE_REQUIRED');return u;}
 export async function createSession(userId:number,req:NextRequest){const db=await getDb();const token=crypto.randomBytes(32).toString('hex');await db.query('DELETE FROM sessions WHERE expires_at<now()');await db.query(`INSERT INTO sessions(id,user_id,expires_at,ip,user_agent) VALUES($1,$2,now()+interval '8 hours',$3,$4)`,[token,userId,ipOf(req),req.headers.get('user-agent')?.slice(0,300)]);return token;}

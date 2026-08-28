@@ -54,7 +54,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 25. Optional TOTP two-factor authentication is available from the profile shield button. Users scan a QR code, verify a 6-digit code, and must use the code at the next login; disabling 2FA requires the current password and a valid code.
 26. The Branch dashboard gives authorized users a branch-wise status board with submitted, pending at DPO, forwarded, returned, approved, rejected and overdue counts. Branch names open their server-scoped Dak list.
 27. DPO can use **Return for correction** instead of Reject. The file enters `CORRECTION_REQUIRED`, is assigned to its creator, and the creator can edit/add supporting documents then **Resubmit to DPO**. This loop remains auditable and does not finalize the Dak.
-28. New and Admin-reset accounts must change their temporary password at first sign-in. Passwords expire after 90 days, and the current plus previous five password hashes cannot be reused. A forced-password session can access only the password-change route until the new password is saved.
+28. New and Admin-reset accounts must change their temporary password at first sign-in. There is no periodic password expiry and no previous-password reuse restriction. A forced-password session can access only the password-change route until the new password is saved.
 29. Failed logins use a durable database-backed throttle: five failures for the same username and source IP temporarily lock access for 15 minutes. Successful login clears that throttle entry.
 30. Authorized users can use the **Internal notes** tab to add append-only file notes separate from the immutable incoming document. Notes are permission-scoped, audited as `NOTE_ADDED`, and disabled after finalization.
 31. Admin, DPO and Clerk can register an **outward dispatch** linked to an approved/archived inward Dak. Dispatch number, date, recipient, mode, tracking/reference and remarks are stored append-only and audited as `DISPATCH_CREATED`.
@@ -65,7 +65,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 - HTTP-only, SameSite=Strict, 8-hour expiring opaque sessions
 - Origin validation on mutations (CSRF defense) and secure-cookie mode in production
 - bcrypt cost-12 password hashing
-- Forced first-login/expired-password change, 90-day expiry and five-password reuse history
+- Forced first-login password change for new and Admin-reset accounts
 - Durable database-backed 5-failure / 15-minute username-and-IP login throttling
 - Parameterized PostgreSQL queries
 - Strict upload MIME/size allowlist, randomized server-side names and basename normalization
@@ -88,7 +88,7 @@ Before office use:
 - Deploy on hardened Linux/Windows server behind HTTPS reverse proxy on office LAN.
 - Move to managed PostgreSQL with least-privilege DB user, encrypted backup and tested restore.
 - Store documents on encrypted volume; apply OS ACLs and immutable/WORM retention where policy requires.
-- Keep the durable account/IP throttle on managed PostgreSQL and apply an approved password-recovery and 2FA policy; first-login change, 90-day expiry and password history are already present in the prototype.
+- Keep the durable account/IP throttle on managed PostgreSQL and apply an approved password-recovery, password policy and 2FA policy; first-login change is present in the prototype.
 - Add malware scanning and file-content signature verification to upload quarantine.
 - Add CSRF tokens as defense-in-depth and a strict Content Security Policy after deployment host is known.
 - Integrate department-approved PKI/HSM/token service before calling any output a legal digital signature.
