@@ -45,7 +45,7 @@ The smoke test uses temporary preview data and creates test records. Restart `np
 10. **Status transition enforcement** — finalized files cannot be forwarded, only finalized files can be archived, and recipients must be active eligible users.
 11. **User lifecycle** — Admin can activate/deactivate users; self-deactivation and removal of the last active DPO are blocked; sessions are revoked on deactivation.
 12. **API response handling** — empty/transient responses are retried once and no longer crash the interface with `Unexpected end of JSON input`.
-13. **UI controls** — Forward is visible in both document header and action panel; Admin archive action is available; priority filter works; Audit CSV export works.
+13. **UI controls** — Workflow actions are available from the document header and compact More menu; Admin archive action is available; priority filter works; Audit CSV export works.
 14. **Dates** — dashboard and New Dak defaults use the current client date/time instead of a hard-coded date.
 15. **Caching and security headers** — sensitive APIs use no-store while static application assets are no longer unnecessarily prevented from caching.
 16. **Error disclosure** — unexpected server/database errors return a generic 500 response instead of exposing internal details.
