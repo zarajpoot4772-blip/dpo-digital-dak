@@ -31,6 +31,7 @@ The local prototype combines the application and embedded PostgreSQL-compatible 
 - Return-for-correction workflow
 - Internal file noting sheet
 - Outward dispatch register and reply linkage
+- Duplicate upload detection
 - Administrative users
 
 ## 3. State machine

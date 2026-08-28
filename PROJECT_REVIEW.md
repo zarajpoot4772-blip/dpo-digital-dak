@@ -17,6 +17,7 @@ Review date: 19 August 2026
 - Durable login lockout threshold and persistence path: passed
 - Permission-scoped append-only internal file notes: passed
 - Approved-Dak outward dispatch register and inward linkage: passed
+- Duplicate diary/document-hash detection during upload: passed
 
 Run the automated workflow test with two terminals:
 
@@ -82,9 +83,7 @@ Admin deliberately does not inherit DPO approval authority.
 ### Priority 2 — operational value
 
 1. **OCR** for scanned Urdu/English documents, subject to confidentiality policy.
-2. **Dispatch/outward Dak** and reply linkage to the original inward Dak.
-3. **Bulk scanning/upload queue** with duplicate detection using diary number and document hash.
-4. **Configurable workflow templates** for different Dak types and offices.
+2. **Configurable workflow templates** for different Dak types and offices.
 
 ### Priority 3 — usability and scale
 

@@ -137,6 +137,14 @@ export async function POST(req: NextRequest) {
       saved = await saveOriginal(file, diaryNumber);
       savedPaths.push(saved.storedPath);
       if(saved.converted)savedPaths.push(saved.converted.storedPath);
+      const duplicate = await db.query<{ diary_number: string }>(
+        `SELECT d.diary_number
+         FROM documents existing JOIN daks d ON d.id=existing.dak_id
+         WHERE existing.version_type='ORIGINAL' AND existing.sha256=$1
+         ORDER BY existing.id LIMIT 1`,
+        [saved.sha]
+      );
+      if (duplicate.rows[0]) throw new Error(`Duplicate document detected; it already exists under Dak ${duplicate.rows[0].diary_number}`);
     }
 
     const dakId = await db.transaction(async tx => {

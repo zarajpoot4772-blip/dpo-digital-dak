@@ -58,6 +58,7 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 29. Failed logins use a durable database-backed throttle: five failures for the same username and source IP temporarily lock access for 15 minutes. Successful login clears that throttle entry.
 30. Authorized users can use the **Internal notes** tab to add append-only file notes separate from the immutable incoming document. Notes are permission-scoped, audited as `NOTE_ADDED`, and disabled after finalization.
 31. Admin, DPO and Clerk can register an **outward dispatch** linked to an approved/archived inward Dak. Dispatch number, date, recipient, mode, tracking/reference and remarks are stored append-only and audited as `DISPATCH_CREATED`.
+32. Bulk Dak upload checks the SHA-256 hash of every original document as well as the diary number, so the same incoming file is not registered twice under a different diary number. Duplicate files are reported individually while the rest of a batch can continue.
 
 ## Security controls in this MVP
 
