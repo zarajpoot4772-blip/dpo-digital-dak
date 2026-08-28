@@ -102,7 +102,7 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 ## 9. Known MVP boundaries
 
 - PGlite is single-process prototype storage, not production multi-user PostgreSQL.
-- Login throttling is process-local; production needs shared durable lockout.
+- Login lockout is now stored in the prototype database per username/source-IP key; production should use managed PostgreSQL with a shared lockout policy.
 - Controlled stamp is not PKI.
 - No OCR, email/SMS, antivirus quarantine, Excel/PDF report export or multi-office tenancy yet; restore and CSV reporting are available in the prototype.
 - Device/IP evidence is best-effort behind a trusted reverse proxy.

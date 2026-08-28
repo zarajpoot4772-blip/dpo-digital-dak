@@ -8,12 +8,13 @@ Review date: 19 August 2026
 - Next.js production build: passed
 - npm dependency audit: 0 known vulnerabilities
 - Local HTTP login and cookie session: passed
-- Automated API/workflow smoke test: 20 checks passed
+- Automated API/workflow smoke test: 37 checks passed
 - Original plus approved document version creation: passed
 - Role authorization checks: passed
 - Branch dashboard status summary and branch-scoped drill-down: passed
 - Return-for-correction and creator resubmission workflow: passed
 - First-login password change, expiry and password-history enforcement: passed
+- Durable login lockout threshold and persistence path: passed
 
 Run the automated workflow test with two terminals:
 
@@ -66,7 +67,7 @@ Admin deliberately does not inherit DPO approval authority.
 ### Priority 1 — before an office pilot
 
 1. **PostgreSQL server migration** — replace embedded PGlite with PostgreSQL 16+, connection pooling and formal migrations.
-2. **Durable account lockout** — store failed attempts/lock state in PostgreSQL rather than process memory.
+2. **Durable account lockout in production** — the prototype now stores failed attempts/lock state in its database; production should move this table to managed PostgreSQL with shared policy.
 3. **Password recovery policy** — add an approved account-recovery process and administrative separation around resets; first-login change, 90-day expiry and password history are implemented in the prototype.
 4. **Two-factor authentication** — TOTP or department-approved identity provider for DPO and Admin.
 5. **Malware quarantine** — scan every upload before it becomes visible; verify file structure in addition to magic bytes.

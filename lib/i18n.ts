@@ -58,6 +58,8 @@ const translations: Array<[string, string]> = ([
   ['Backups', 'بیک اپ'],
   ['Notifications', 'اطلاعات'],
   ['No notifications', 'کوئی اطلاع نہیں'],
+  ['Account access temporarily locked. Try again later.', 'اکاؤنٹ کی رسائی عارضی طور پر بند ہے۔ بعد میں دوبارہ کوشش کریں۔'],
+
   ['System operational', 'سسٹم فعال ہے'],
   ['Local secure prototype', 'مقامی محفوظ پروٹوٹائپ'],
   ['OVERVIEW', 'جائزہ'],
