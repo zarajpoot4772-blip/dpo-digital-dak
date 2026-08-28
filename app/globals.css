@@ -488,3 +488,8 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .detail-head-actions .quick-approve,.detail-head-actions .quick-reject,.detail-head-actions .quick-correction,.detail-head-actions .quick-resubmit,.detail-head-actions .quick-forward{width:100%;min-width:0;min-height:32px;padding:5px 4px;display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.05;font-size:8px}
  .detail-head-actions .close{width:32px;height:32px;justify-self:end}
 }
+
+/* Approval asset should show only the signature/stamp itself; keep the transparent drag hit-area invisible. */
+.placement-paper .placed-stamp{border:0;background:transparent;padding:0;box-shadow:none;min-height:0;display:block}
+.placement-paper .placed-stamp .signature-image{display:block;width:100%;height:auto;max-height:none;object-fit:contain}
+.placement-paper .placed-stamp .stamp-image{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
