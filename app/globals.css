@@ -513,3 +513,39 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .duplicate-actions .link-button{border:0;background:transparent;color:#6c7b73;font-size:10px;font-weight:700;padding:8px 4px}
 .duplicate-actions .link-button:hover{text-decoration:underline;color:#174f38}
 @media(max-width:600px){.duplicate-dialog{padding:10px}.duplicate-dialog .duplicate-card{padding:17px 13px}.duplicate-comparison{grid-template-columns:1fr}.duplicate-actions{align-items:stretch;flex-direction:column}.duplicate-actions button{width:100%}}
+
+/* Keep AI assistance as one small, read-only action inside a Dak. */
+.quick-assist{border:1px solid #b9c9e3;border-radius:6px;padding:7px 10px;background:#f3f6fc;color:#335681;font-size:10px;font-weight:800;white-space:nowrap}
+.quick-assist:hover{background:#e8eef9;border-color:#93acd0}
+.assist-dialog{z-index:115}
+.assist-dialog .assist-card{width:min(650px,94vw);max-width:650px;max-height:calc(100dvh - 32px);overflow:auto;padding:22px;background:#fff;border-radius:10px;box-shadow:0 20px 60px #0005}
+.assist-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid #e5ebe8;padding-bottom:13px}
+.assist-heading h3{margin:0 0 5px;font:24px Georgia;color:#173e2f}
+.assist-heading p:not(.eyebrow){margin:0;color:#6f7c76;font-size:11px;line-height:1.5}
+.assist-close{border:0;background:transparent;color:#78867f;font-size:24px;line-height:1;padding:0 2px}
+.assist-start{display:grid;justify-items:start;gap:7px;padding:24px 4px 8px}
+.assist-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#edf3fb;color:#416898;font-size:23px;margin-bottom:3px}
+.assist-start b{font-size:14px;color:#254a3c}
+.assist-start span{max-width:470px;color:#718079;font-size:11px;line-height:1.55;margin-bottom:8px}
+.assist-loading{display:grid;justify-items:center;gap:8px;padding:42px 10px;color:#315b4a;text-align:center}
+.loading-spinner{width:28px;height:28px;border:3px solid #d6e4dd;border-top-color:#1b7250;border-radius:50%;animation:spin .7s linear infinite}
+.assist-loading small{color:#7a8781;font-size:10px}
+.assist-error{margin:16px 0 0;padding:10px 12px;border:1px solid #efcaca;border-left:3px solid #ad4039;border-radius:6px;background:#fff3f2;color:#993b35;font-size:11px}
+.assist-mode{display:flex;align-items:center;gap:9px;margin:15px 0 2px;padding:9px 11px;border:1px solid #d7e5dc;border-radius:6px;background:#f4faf6}
+.assist-mode span{color:#1f6849;font-size:10px;font-weight:800}
+.assist-mode small{color:#708078;font-size:9px}
+.assist-section{margin-top:15px}
+.assist-section h4{margin:0 0 7px;color:#315447;font-size:10px;letter-spacing:.7px;text-transform:uppercase}
+.assist-summary,.assist-translation{margin:0;padding:11px 12px;border-left:3px solid #3f6d9d;border-radius:5px;background:#f5f8fc;color:#40564b;font-size:12px;line-height:1.6;white-space:pre-wrap}
+.assist-translation{border-left-color:#b17b2b;background:#fffaf0;font-family:Georgia,serif;font-size:14px;line-height:1.7}
+.assist-points{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.assist-points li{padding:8px 10px;border:1px solid #e3eae6;border-radius:5px;color:#53665d;font-size:10px;line-height:1.45}
+.assist-points li::before{content:'•';color:#2d7b58;font-weight:800;margin-right:7px}
+.assist-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.assist-fields div{display:flex;flex-direction:column;gap:4px;min-width:0;padding:9px 10px;border:1px solid #e3eae6;border-radius:5px;background:#fbfdfc}
+.assist-fields small{color:#7b8982;font-size:9px}
+.assist-fields b{color:#3c5649;font-size:10px;overflow-wrap:anywhere}
+.assist-notice{margin-top:16px;padding:10px 11px;border-left:3px solid #92713a;background:#fff8ea;color:#77623d;font-size:10px;line-height:1.5}
+.assist-actions{justify-content:flex-end!important}
+@media(min-width:761px){.detail > .detail-head-actions .quick-assist{flex:0 0 auto;min-width:74px;min-height:34px;padding:6px 7px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;white-space:normal}}
+@media(max-width:760px){.detail-head-actions .quick-assist{grid-column:1 / -1;width:100%;min-height:32px}.assist-dialog{padding:10px}.assist-dialog .assist-card{padding:17px 13px}.assist-fields{grid-template-columns:1fr}.assist-actions{align-items:stretch;flex-direction:column}.assist-actions button{width:100%}}
