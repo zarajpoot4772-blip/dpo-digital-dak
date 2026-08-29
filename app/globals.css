@@ -549,3 +549,15 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .assist-actions{justify-content:flex-end!important}
 @media(min-width:761px){.detail > .detail-head-actions .quick-assist{flex:0 0 auto;min-width:74px;min-height:34px;padding:6px 7px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.1;white-space:normal}}
 @media(max-width:760px){.detail-head-actions .quick-assist{grid-column:1 / -1;width:100%;min-height:32px}.assist-dialog{padding:10px}.assist-dialog .assist-card{padding:17px 13px}.assist-fields{grid-template-columns:1fr}.assist-actions{align-items:stretch;flex-direction:column}.assist-actions button{width:100%}}
+
+/* Keep Previous / Next in one fixed navigation slot. Tab counters may change
+   from Dak to Dak, but navigation must not jump to a different row. */
+.detail-tabs{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;min-height:42px}
+.detail-tab-list{display:flex;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.detail-tab-list button{flex:0 0 auto}
+.detail-tabs > .record-navigation{justify-self:end;align-self:center;white-space:nowrap;margin:0}
+@media(max-width:760px){
+ .detail-tabs{display:block;padding-inline:10px}
+ .detail-tab-list{overflow-x:auto;white-space:nowrap}
+ .detail-tabs > .record-navigation{width:100%;margin:7px 0 8px}
+}
