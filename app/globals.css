@@ -495,3 +495,21 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 .placement-paper .placed-stamp.stamp-mode{width:22%}
 .placement-paper .placed-stamp .signature-image{display:block;width:100%;height:auto;max-width:100%;max-height:100%;object-fit:contain}
 .placement-paper .placed-stamp .stamp-image{display:block;width:100%;height:100%;max-width:100%;max-height:100%;aspect-ratio:1;object-fit:contain}
+
+/* Simple pre-upload duplicate decision sheet. */
+.duplicate-dialog{z-index:120;place-items:center;padding:16px}
+.duplicate-dialog .duplicate-card{width:min(620px,94vw);max-width:620px;max-height:calc(100dvh - 32px);overflow:auto;padding:24px;background:#fff;border-radius:10px;box-shadow:0 20px 60px #0005}
+.duplicate-card h3{margin:0 0 7px;font:24px Georgia;color:#173e2f}
+.duplicate-intro{margin:0 0 16px;color:#617169;font-size:11px;line-height:1.55}
+.duplicate-comparison{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.duplicate-record{display:flex;flex-direction:column;gap:5px;min-width:0;padding:13px;border:1px solid #e1cda9;border-left:3px solid #b77823;border-radius:7px;background:#fffaf1;color:#53645c}
+.duplicate-record.new{border-color:#bcdccc;border-left-color:#18704f;background:#f3faf6}
+.duplicate-record small{font-size:9px;letter-spacing:.8px;font-weight:800;color:#8d621f}
+.duplicate-record.new small{color:#18704f}
+.duplicate-record b{font-size:13px;color:#254c3c;overflow-wrap:anywhere}
+.duplicate-record span{font-size:10px;overflow-wrap:anywhere}
+.duplicate-note{margin:0;padding:10px 11px;border-left:3px solid #7f8e87;background:#f4f7f5;color:#65736d!important;font-size:10px!important;line-height:1.5}
+.duplicate-actions{align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.duplicate-actions .link-button{border:0;background:transparent;color:#6c7b73;font-size:10px;font-weight:700;padding:8px 4px}
+.duplicate-actions .link-button:hover{text-decoration:underline;color:#174f38}
+@media(max-width:600px){.duplicate-dialog{padding:10px}.duplicate-dialog .duplicate-card{padding:17px 13px}.duplicate-comparison{grid-template-columns:1fr}.duplicate-actions{align-items:stretch;flex-direction:column}.duplicate-actions button{width:100%}}

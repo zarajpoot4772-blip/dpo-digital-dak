@@ -28,10 +28,6 @@ function decorateUser(row:PasswordUser):User{
 
 export async function currentUser(previewToken?:string|null):Promise<User|null>{
  const c=await cookies(); const h=await headers(); const bearer=h.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]; const token=c.get(COOKIE)?.value||(process.env.NODE_ENV!=='production'?(previewToken||bearer):undefined);const db=await getDb();
- if(!token&&process.env.PGLITE_MEMORY==='1'){
-  const ref=h.get('referer')||'';
-  if(ref.includes('/portal')){const demo=await db.query<PasswordUser>(`SELECT id,name,username,role,department,branch,totp_enabled,must_change_password FROM users WHERE username='dpo' AND active=true`);return demo.rows[0]?decorateUser(demo.rows[0]):null}
- }
  if(!token)return null;
  const r=await db.query<PasswordUser>(`SELECT u.id,u.name,u.username,u.role,u.department,u.branch,u.totp_enabled,u.must_change_password FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.id=$1 AND s.expires_at>now() AND u.active=true`,[token]); return r.rows[0]?decorateUser(r.rows[0]):null;
 }

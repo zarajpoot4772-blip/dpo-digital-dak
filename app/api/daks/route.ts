@@ -133,6 +133,7 @@ export async function POST(req: NextRequest) {
     }
 
     let saved: Awaited<ReturnType<typeof saveOriginal>> | null = null;
+    const duplicateOverride = get('allow_duplicate') === 'true';
     if (file instanceof File && file.size > 0) {
       saved = await saveOriginal(file, diaryNumber);
       savedPaths.push(saved.storedPath);
@@ -140,13 +141,15 @@ export async function POST(req: NextRequest) {
       const duplicate = await db.query<{ diary_number: string }>(
         `SELECT d.diary_number
          FROM documents existing JOIN daks d ON d.id=existing.dak_id
-         WHERE existing.version_type='ORIGINAL' AND existing.sha256=$1
+         WHERE existing.sha256=$1
+           AND existing.version_type IN ('ORIGINAL','CONVERTED','SUPPORTING','SUPPORTING_CONVERTED')
          ORDER BY existing.id LIMIT 1`,
         [saved.sha]
       );
-      if (duplicate.rows[0]) throw new Error(`Duplicate document detected; it already exists under Dak ${duplicate.rows[0].diary_number}`);
+      if (duplicate.rows[0] && !duplicateOverride) throw new Error(`Duplicate document detected; it already exists under Dak ${duplicate.rows[0].diary_number}`);
     }
 
+    const auditRemarks = `${get('remarks') || (saved?.converted?'DOCX original preserved and PDF preview generated':saved?'Dak entered and original uploaded':'Dak entered without an attachment')}${duplicateOverride ? ' — Duplicate upload explicitly confirmed by uploader.' : ''}`.slice(0, 2000);
     const dakId = await db.transaction(async tx => {
       const dak = await tx.query<{ id: number }>(
         `INSERT INTO daks(diary_number,diary_date,received_date,received_time,due_date,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks)
@@ -167,7 +170,7 @@ export async function POST(req: NextRequest) {
       await tx.query(
         `INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status,ip,user_agent)
          VALUES($1,$2,'CREATED',$3,NULL,'PENDING',$4,$5)`,
-        [id,user.id,get('remarks') || (saved?.converted?'DOCX original preserved and PDF preview generated':saved?'Dak entered and original uploaded':'Dak entered without an attachment'),ipOf(req),req.headers.get('user-agent')?.slice(0,300)]
+        [id,user.id,auditRemarks,ipOf(req),req.headers.get('user-agent')?.slice(0,300)]
       );
       await tx.query(`INSERT INTO notifications(user_id,dak_id,message) VALUES($1,$2,$3)`, [assignedTo,id,`New Dak ${diaryNumber} is pending for review.`]);
       return id;

@@ -28,11 +28,21 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (files.reduce((total, file) => total + file.size, 0) > 200 * 1024 * 1024) throw new Error('Supporting documents exceed the 200 MB batch limit');
 
     const saved: Awaited<ReturnType<typeof saveOriginal>>[] = [];
+    const duplicateOverride = String(form.get('allow_duplicate') || '') === 'true';
     for (const file of files) {
       const item = await saveOriginal(file, dak.diary_number);
       saved.push(item);
       savedPaths.push(item.storedPath);
       if (item.converted) savedPaths.push(item.converted.storedPath);
+      const duplicate = await db.query<{ diary_number: string }>(
+        `SELECT d.diary_number
+         FROM documents existing JOIN daks d ON d.id=existing.dak_id
+         WHERE existing.sha256=$1
+           AND existing.version_type IN ('ORIGINAL','CONVERTED','SUPPORTING','SUPPORTING_CONVERTED')
+         ORDER BY existing.id LIMIT 1`,
+        [item.sha]
+      );
+      if (duplicate.rows[0] && !duplicateOverride) throw new Error(`Duplicate supporting document detected; it already exists under Dak ${duplicate.rows[0].diary_number}`);
     }
 
     const names = saved.map(item => item.original).join(', ').slice(0, 1000);
@@ -55,7 +65,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         }
       }
       const note = String(form.get('remarks') || '').trim().slice(0, 2000);
-      const auditText = `${note ? `${note} — ` : ''}Supporting document(s) uploaded: ${names}`;
+      const auditText = `${note ? `${note} — ` : ''}Supporting document(s) uploaded: ${names}${duplicateOverride ? ' — Duplicate upload explicitly confirmed by uploader.' : ''}`.slice(0, 2000);
       await tx.query(
         `INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status,ip,user_agent)
          VALUES($1,$2,'SUPPORTING_UPLOADED',$3,$4,$4,$5,$6)`,
