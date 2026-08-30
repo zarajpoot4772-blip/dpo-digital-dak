@@ -257,7 +257,35 @@ const translations: Array<[string, string]> = ([
   ['SLA alert', 'ایس ایل اے اطلاع'],
   ['is overdue', 'کی میعاد گزر چکی ہے'],
   ['is due today', 'آج مقرر ہے'],
-  ['is due tomorrow', 'کل مقرر ہے']
+  ['is due tomorrow', 'کل مقرر ہے'],
+  // Document Review Portal redesign
+  ['District Police Office · Digital Dak', 'ضلعی پولیس آفس · ڈیجیٹل ڈاک'],
+  ['Document Review Portal', 'دستاویز جائزہ پورٹل'],
+  ['Every action below is timestamped and permanently recorded in the audit trail.', 'نیچے دی گئی ہر کارروائی وقت کے ساتھ آڈٹ ٹریل میں مستقل ریکارڈ ہوتی ہے۔'],
+  ['This file is permanently logged. Approve, reject and forward actions cannot be undone once recorded.', 'یہ فائل مستقل ریکارڈ میں محفوظ ہے۔ ریکارڈ ہونے کے بعد منظوری، مسترد اور ارسال کی کارروائیاں واپس نہیں ہو سکتیں۔'],
+  ['No attachment is available, so approval is disabled. Forward or reject is still allowed.', 'کوئی منسلکہ دستاویز دستیاب نہیں ہے، اس لیے منظوری بند ہے۔ ارسال یا مسترد کرنا اب بھی ممکن ہے۔'],
+  ['No document attached', 'کوئی دستاویز منسلک نہیں'],
+  ['Opening protected file…', 'محفوظ فائل کھولی جا رہی ہے…'],
+  ['Download / print allowed', 'ڈاؤن لوڈ / پرنٹ کی اجازت'],
+  ['View-only access', 'صرف دیکھنے کی رسائی'],
+  ['SHA-256 protected', 'SHA-256 محفوظ'],
+  ['Download copy ↗', 'ڈاؤن لوڈ کاپی ↗'],
+  ['View copy ↗', 'کاپی دیکھیں ↗'],
+  ['Print copy ↗', 'پرنٹ کاپی ↗'],
+  ['Signed copy created', 'دستخط شدہ کاپی بنائی گئی'],
+  ['Reason optional', 'وجہ اختیاری ہے'],
+  ['CURRENT CUSTODIAN', 'موجودہ امانت دار'],
+  ['Last updated', 'آخری اپ ڈیٹ'],
+  ['AI Assist', 'اے آئی مدد'],
+  ['Summarize and translate the document', 'دستاویز کا خلاصہ اور ترجمہ کریں'],
+  ['Send back to the Dak creator', 'ڈاک بنانے والے کو واپس بھیجیں'],
+  ['Send corrected Dak for review', 'درست شدہ ڈاک جائزے کے لیے بھیجیں'],
+  ['Send to officer or branch', 'آفیسر یا برانچ کو بھیجیں'],
+  ['Change the responsible user', 'ذمہ دار صارف بدلیں'],
+  ['Return to the active DPO', 'فعال ڈی پی او کو واپس کریں'],
+  ['Record an instruction or note', 'ہدایت یا نوٹ ریکارڈ کریں'],
+  ['Close this finalized file', 'اس حتمی فائل کو بند کریں'],
+  ['Record', 'ریکارڈ']
 ] as Array<[string, string]>).sort((a, b) => b[0].length - a[0].length);
 
 const originalText = new WeakMap<Text, string>();
