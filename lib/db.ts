@@ -88,30 +88,31 @@ async function init(){
  `);
  // Idempotent local-schema migration for workspaces created before Branch Head support.
  await db.exec(`ALTER TABLE daks ADD COLUMN IF NOT EXISTS due_date DATE; CREATE TABLE IF NOT EXISTS file_notes(id SERIAL PRIMARY KEY,dak_id INTEGER NOT NULL REFERENCES daks(id),user_id INTEGER NOT NULL REFERENCES users(id),body TEXT NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS idx_file_notes_dak ON file_notes(dak_id,created_at); CREATE TABLE IF NOT EXISTS dispatches(id SERIAL PRIMARY KEY,dak_id INTEGER NOT NULL REFERENCES daks(id),dispatch_number TEXT UNIQUE NOT NULL,dispatch_date DATE NOT NULL,recipient TEXT NOT NULL,recipient_department TEXT,dispatch_mode TEXT NOT NULL CHECK(dispatch_mode IN ('POST','COURIER','EMAIL','HAND_DELIVERY')),tracking_number TEXT,remarks TEXT,created_by INTEGER NOT NULL REFERENCES users(id),created_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS idx_dispatches_dak ON dispatches(dak_id,created_at); ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT false; ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ; UPDATE users SET password_changed_at=COALESCE(password_changed_at,created_at,now()) WHERE password_changed_at IS NULL; ALTER TABLE users ALTER COLUMN password_changed_at SET DEFAULT now(); ALTER TABLE users ALTER COLUMN password_changed_at SET NOT NULL; CREATE TABLE IF NOT EXISTS login_throttle(lock_key TEXT PRIMARY KEY,username TEXT NOT NULL,ip TEXT NOT NULL,failed_count INTEGER NOT NULL DEFAULT 0,locked_until TIMESTAMPTZ,updated_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS idx_login_throttle_updated ON login_throttle(updated_at); DROP TABLE IF EXISTS password_history; ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_secret TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_pending_secret TEXT; ALTER TABLE users ADD COLUMN IF NOT EXISTS totp_enabled BOOLEAN NOT NULL DEFAULT false; CREATE TABLE IF NOT EXISTS mfa_challenges(id TEXT PRIMARY KEY,user_id INTEGER NOT NULL REFERENCES users(id),expires_at TIMESTAMPTZ NOT NULL,created_at TIMESTAMPTZ NOT NULL DEFAULT now()); CREATE INDEX IF NOT EXISTS idx_mfa_challenges_expiry ON mfa_challenges(expires_at); ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check; ALTER TABLE users ADD CONSTRAINT users_role_check CHECK(role IN ('ADMIN','DPO','CLERK','OFFICER','BRANCH_HEAD')); ALTER TABLE user_signatures ADD COLUMN IF NOT EXISTS asset_type TEXT NOT NULL DEFAULT 'SIGNATURE'; ALTER TABLE documents ADD COLUMN IF NOT EXISTS search_text TEXT; ALTER TABLE documents ADD COLUMN IF NOT EXISTS text_indexed BOOLEAN NOT NULL DEFAULT false; ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_version_type_check; ALTER TABLE documents ADD CONSTRAINT documents_version_type_check CHECK(version_type IN ('ORIGINAL','CONVERTED','SUPPORTING','SUPPORTING_CONVERTED','APPROVED','REJECTED_COPY')); DROP INDEX IF EXISTS idx_user_signatures_active; CREATE UNIQUE INDEX IF NOT EXISTS idx_user_signature_asset_active ON user_signatures(user_id,asset_type) WHERE active=true;`);
+ // Remove legacy predictable preview sessions created by older prototype builds.
+ // They must never remain usable after a security-hardening deployment.
+ await db.query(`DELETE FROM sessions WHERE id IN ('demo-dpo-session','demo-clerk-session','demo-admin-session','demo-officer-session','demo-branch-session')`);
  const count=await db.query<{count:string}>('SELECT count(*)::text count FROM users');
  if(Number(count.rows[0].count)===0){
-  const users=[['System Administrator','admin','Admin@12345','ADMIN','DPO Office','IT'],['District Police Officer','dpo','Dpo@12345','DPO','Police','DPO Office'],['Dak Clerk','clerk','Clerk@12345','CLERK','DPO Office','Dak Branch'],['SP Investigation','sp.inv','Officer@12345','OFFICER','Police','Investigation'],['Branch Head Operations','head.ops','Branch@12345','BRANCH_HEAD','DPO Office','Operations Branch']];
-  for(const u of users) await db.query('INSERT INTO users(name,username,password_hash,role,department,branch) VALUES($1,$2,$3,$4,$5,$6)',[u[0],u[1],await bcrypt.hash(u[2],12),u[3],u[4],u[5]]);
-  await db.exec(`INSERT INTO branches(name,code,department,head_user_id,created_by) SELECT 'Operations Branch','OPS','DPO Office',id,1 FROM users WHERE username='head.ops' ON CONFLICT(code) DO NOTHING;`);
-  const sample=path.join(storageRoot,'originals','DAAK-1254-original.pdf'); await makeSamplePdf(sample); const stat=await fs.stat(sample); const crypto=await import('crypto'); const sha=crypto.createHash('sha256').update(await fs.readFile(sample)).digest('hex');
-  const d=await db.query<{id:number}>(`INSERT INTO daks(diary_number,diary_date,received_date,received_time,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks) VALUES('1254/2026','2026-08-18','2026-08-18','09:35','Monthly law and order coordination meeting','Home Department Punjab','SO(Admin)/2026/441','2026-08-16','Home Department','DPO Office','URGENT','OFFICIAL','PENDING',2,3,'For kind perusal and orders') RETURNING id`);
-  await db.query(`INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by) VALUES($1,'ORIGINAL','coordination-letter.pdf','DAAK-1254-original.pdf','application/pdf',$2,$3,3)`,[d.rows[0].id,stat.size,sha]);
-  await db.query(`INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status) VALUES($1,3,'CREATED','Dak entered and original document uploaded',NULL,'PENDING')`,[d.rows[0].id]);
-  await db.query(`INSERT INTO notifications(user_id,dak_id,message) VALUES(2,$1,'New urgent Dak 1254/2026 is pending for your review.')`,[d.rows[0].id]);
+  const productionInstall=process.env.NODE_ENV==='production'&&process.env.PGLITE_MEMORY!=='1';
+  const initialAdminPassword=process.env.INITIAL_ADMIN_PASSWORD?.trim();
+  if(productionInstall&&(!initialAdminPassword||initialAdminPassword.length<10)){
+   throw new Error('INITIAL_ADMIN_PASSWORD (at least 10 characters) is required before first production startup');
+  }
+  const users:Array<[string,string,string,string,string,string]>=productionInstall
+   ? [['System Administrator','admin',initialAdminPassword as string,'ADMIN','DPO Office','IT']]
+   : [['System Administrator','admin','Admin@12345','ADMIN','DPO Office','IT'],['District Police Officer','dpo','Dpo@12345','DPO','Police','DPO Office'],['Dak Clerk','clerk','Clerk@12345','CLERK','DPO Office','Dak Branch'],['SP Investigation','sp.inv','Officer@12345','OFFICER','Police','Investigation'],['Branch Head Operations','head.ops','Branch@12345','BRANCH_HEAD','DPO Office','Operations Branch']];
+  for(const u of users) await db.query('INSERT INTO users(name,username,password_hash,must_change_password,password_changed_at,role,department,branch) VALUES($1,$2,$3,$4,now(),$5,$6,$7)',[u[0],u[1],await bcrypt.hash(u[2],12),productionInstall,u[3],u[4],u[5]]);
+  if(!productionInstall){
+   await db.exec(`INSERT INTO branches(name,code,department,head_user_id,created_by) SELECT 'Operations Branch','OPS','DPO Office',id,1 FROM users WHERE username='head.ops' ON CONFLICT(code) DO NOTHING;`);
+   const sample=path.join(storageRoot,'originals','DAAK-1254-original.pdf'); await makeSamplePdf(sample); const stat=await fs.stat(sample); const crypto=await import('crypto'); const sha=crypto.createHash('sha256').update(await fs.readFile(sample)).digest('hex');
+   const d=await db.query<{id:number}>(`INSERT INTO daks(diary_number,diary_date,received_date,received_time,subject,sender,letter_number,letter_date,department,branch,priority,confidentiality,status,assigned_to,created_by,remarks) VALUES('1254/2026','2026-08-18','2026-08-18','09:35','Monthly law and order coordination meeting','Home Department Punjab','SO(Admin)/2026/441','2026-08-16','Home Department','DPO Office','URGENT','OFFICIAL','PENDING',2,3,'For kind perusal and orders') RETURNING id`);
+   await db.query(`INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by) VALUES($1,'ORIGINAL','coordination-letter.pdf','DAAK-1254-original.pdf','application/pdf',$2,$3,3)`,[d.rows[0].id,stat.size,sha]);
+   await db.query(`INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status) VALUES($1,3,'CREATED','Dak entered and original document uploaded',NULL,'PENDING')`,[d.rows[0].id]);
+   await db.query(`INSERT INTO notifications(user_id,dak_id,message) VALUES(2,$1,'New urgent Dak 1254/2026 is pending for your review.')`,[d.rows[0].id]);
+  }
  }
+
  try{await indexExistingDocumentText(db)}catch(error){console.error('DOCUMENT_TEXT_INDEX_STARTUP_ERROR',error)}
- if(process.env.PGLITE_MEMORY==='1'){
-  await db.exec(`INSERT INTO sessions(id,user_id,expires_at,ip,user_agent)
-   SELECT 'demo-dpo-session',id,now()+interval '30 days','preview','Arena preview' FROM users WHERE username='dpo' ON CONFLICT(id) DO UPDATE SET expires_at=excluded.expires_at;
-   INSERT INTO sessions(id,user_id,expires_at,ip,user_agent)
-   SELECT 'demo-clerk-session',id,now()+interval '30 days','preview','Arena preview' FROM users WHERE username='clerk' ON CONFLICT(id) DO UPDATE SET expires_at=excluded.expires_at;
-   INSERT INTO sessions(id,user_id,expires_at,ip,user_agent)
-   SELECT 'demo-admin-session',id,now()+interval '30 days','preview','Arena preview' FROM users WHERE username='admin' ON CONFLICT(id) DO UPDATE SET expires_at=excluded.expires_at;
-   INSERT INTO sessions(id,user_id,expires_at,ip,user_agent)
-   SELECT 'demo-officer-session',id,now()+interval '30 days','preview','Arena preview' FROM users WHERE username='sp.inv' ON CONFLICT(id) DO UPDATE SET expires_at=excluded.expires_at;
-   INSERT INTO sessions(id,user_id,expires_at,ip,user_agent)
-   SELECT 'demo-branch-session',id,now()+interval '30 days','preview','Arena preview' FROM users WHERE username='head.ops' ON CONFLICT(id) DO UPDATE SET expires_at=excluded.expires_at;`);
- }
  if(process.env.PGLITE_MEMORY!=='1')await writeSnapshot(db);
  return db;
 }

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const access = (req.nextUrl.searchParams.get('access') || 'preview').toLowerCase();
     if (!accessModes.has(access)) throw new Error('Unsupported document access mode');
-    const user = await requireUser(undefined, req.nextUrl.searchParams.get('preview_token'));
+    const user = await requireUser();
     const { id } = await params;
     const documentId = Number(id);
     const db = await getDb();

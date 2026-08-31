@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ mfa_required: true, challenge_token: challenge, user: { id: user.id, name: user.name, role: user.role, ...passwordStatus } });
     }
     const token = await createSession(user.id, req);
-    return sessionResponse({ user: { id: user.id, name: user.name, role: user.role, totp_enabled: user.totp_enabled, ...passwordStatus } }, token);
+    return sessionResponse({ user: { id: user.id, name: user.name, role: user.role, totp_enabled: user.totp_enabled, ...passwordStatus } }, token, req);
   } catch (error) {
     console.error('LOGIN_ERROR', error);
     const detail = error instanceof Error ? error.message : 'Unknown database error';

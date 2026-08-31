@@ -8,14 +8,8 @@ import { currentUser } from '@/lib/auth';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-type PortalPageProps = {
-  searchParams: Promise<{ auth?: string | string[] | undefined }>;
-};
-
-export default async function PortalPage({ searchParams }: PortalPageProps) {
-  const params = await searchParams;
-  const previewToken = typeof params.auth === 'string' ? params.auth : null;
-  const user = await currentUser(previewToken);
+export default async function PortalPage() {
+  const user = await currentUser();
 
   // Never render the private workspace before a real session has been
   // verified. In the past /portal rendered first and only then showed a

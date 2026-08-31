@@ -34,7 +34,14 @@ export async function currentUser(previewToken?:string|null):Promise<User|null>{
 export async function requireUser(roles?:Role[],previewToken?:string|null,options?:{allowPasswordChange?:boolean}){const u=await currentUser(previewToken);if(!u)throw new Error('UNAUTHORIZED');if(roles&&!roles.includes(u.role))throw new Error('FORBIDDEN');if(!options?.allowPasswordChange&&u.password_change_required)throw new Error('PASSWORD_CHANGE_REQUIRED');return u;}
 export async function createSession(userId:number,req:NextRequest){const db=await getDb();const token=crypto.randomBytes(32).toString('hex');await db.query('DELETE FROM sessions WHERE expires_at<now()');await db.query(`INSERT INTO sessions(id,user_id,expires_at,ip,user_agent) VALUES($1,$2,now()+interval '8 hours',$3,$4)`,[token,userId,ipOf(req),req.headers.get('user-agent')?.slice(0,300)]);return token;}
 export async function destroySession(){const c=await cookies();const t=c.get(COOKIE)?.value;if(t){const db=await getDb();await db.query('DELETE FROM sessions WHERE id=$1',[t]);}c.delete(COOKIE);}
-export function sessionResponse(data:unknown,token:string){const arena=process.env.NEXT_PUBLIC_ARENA_PREVIEW==='1';const payload=arena&&data&&typeof data==='object'?{...(data as Record<string,unknown>),preview_token:token}:data;const r=NextResponse.json(payload);r.cookies.set(COOKIE,token,{httpOnly:true,sameSite:arena?'none':'strict',secure:arena||process.env.NODE_ENV==='production',partitioned:arena,path:'/',maxAge:8*3600});return r;}
+function sessionCookieOptions(req?:NextRequest){
+ const arena=process.env.NEXT_PUBLIC_ARENA_PREVIEW==='1';
+ const forwardedProtocol=req?.headers.get('x-forwarded-proto')?.split(',')[0].trim();
+ const isHttps=process.env.NODE_ENV==='production'||req?.nextUrl.protocol==='https:'||forwardedProtocol==='https';
+ return {httpOnly:true as const,sameSite:(arena&&isHttps?'none':'strict') as 'none'|'strict',secure:isHttps,partitioned:arena&&isHttps,path:'/',maxAge:8*3600};
+}
+export function setSessionCookie(response:NextResponse,token:string,req?:NextRequest){response.cookies.set(COOKIE,token,sessionCookieOptions(req));return response;}
+export function sessionResponse(data:unknown,token:string,req?:NextRequest){const arena=process.env.NEXT_PUBLIC_ARENA_PREVIEW==='1';const payload=arena&&data&&typeof data==='object'?{...(data as Record<string,unknown>),preview_token:token}:data;return setSessionCookie(NextResponse.json(payload),token,req);}
 export function ipOf(req:NextRequest){return (req.headers.get('x-forwarded-for')||req.headers.get('x-real-ip')||'local').split(',')[0].trim();}
 export function apiError(error:unknown){
  const message=error instanceof Error?error.message:'ERROR';

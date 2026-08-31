@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     if (!valid.valid) throw new Error('Authenticator code is invalid or expired');
     await db.query('DELETE FROM mfa_challenges WHERE id=$1', [challenge]);
     const token = await createSession(row.user_id, req);
-    return sessionResponse({ user: { id: row.user_id, name: row.name, role: row.role, totp_enabled: true } }, token);
+    return sessionResponse({ user: { id: row.user_id, name: row.name, role: row.role, totp_enabled: true } }, token, req);
   } catch (error) {
     return apiError(error);
   }

@@ -23,7 +23,7 @@ Open `http://localhost:3000`.
 | Officer | `sp.inv` | `Officer@12345` |
 | Branch Head | `head.ops` | `Branch@12345` |
 
-Change all seeded passwords before any controlled pilot. Prototype data is stored under `data/`; original and derived files are under private `storage/` directories and never served as static files.
+These demo accounts and sample Dak data are for local development/temporary preview only. A fresh production database no longer creates public demo accounts: it requires `INITIAL_ADMIN_PASSWORD`, creates only a forced-change Admin account, and starts with no sample Dak. Change all local seeded passwords before any controlled pilot. Prototype data is stored under `data/`; original and derived files are under private `storage/` directories and never served as static files.
 
 ## Implemented workflow
 
@@ -60,11 +60,14 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 31. Admin, DPO and Clerk can register an **outward dispatch** linked to an approved/archived inward Dak. Dispatch number, date, recipient, mode, tracking/reference and remarks are stored append-only and audited as `DISPATCH_CREATED`.
 32. Bulk Dak upload checks the SHA-256 hash of every original document as well as the diary number, so the same incoming file is not registered twice under a different diary number. Before upload, a simple decision sheet lets the user keep/skip the existing file, explicitly upload a separate new Dak, or cancel the batch; non-duplicate files continue independently. Supporting-document duplicates use the same confirmation rule.
 33. The File details header includes a small read-only **AI Assist** button. It produces a concise summary, key points and review-only metadata suggestions. With no private model configured, a safe local metadata/document-text summary is shown and no document is sent to a public AI service. An OpenAI-compatible private endpoint can be enabled server-side with `PRIVATE_AI_BASE_URL`, `PRIVATE_AI_MODEL` and optional `PRIVATE_AI_API_KEY`; every use is audited as `AI_ASSISTED` and no workflow action is automated.
+34. The review screen keeps the central area for the protected document preview. Dak tabs, Previous/Next navigation, document controls and Authorized Actions stay together in the right review rail; the navigation slot is fixed so changing history/note counts do not move it.
 
 ## Security controls in this MVP
 
 - Server-side role checks on every sensitive API (UI hiding is not relied upon)
-- HTTP-only, SameSite=Strict, 8-hour expiring opaque sessions
+- HTTP-only, 8-hour expiring opaque sessions; production cookies use SameSite=Strict
+- Temporary preview login tokens are exchanged once for an HttpOnly session cookie; predictable legacy demo sessions are removed and normal APIs do not accept query-string bearer tokens
+- Fresh production initialization requires `INITIAL_ADMIN_PASSWORD`, creates only a forced-change Admin account and does not seed demo credentials or sample Dak data
 - Origin validation on mutations (CSRF defense) and secure-cookie mode in production
 - bcrypt cost-12 password hashing
 - Forced first-login password change for new and Admin-reset accounts
@@ -76,6 +79,9 @@ Change all seeded passwords before any controlled pilot. Prototype data is store
 - Security response headers
 - No hard-delete API for Dak, documents, actions or signatures
 - Controlled, server-side status transitions
+- Approval document, signature, status, notification and audit writes are committed in one database transaction; a failed transaction removes the generated approval PDF
+- Public health monitoring returns only a basic status and does not reveal user counts
+- GitHub Actions runs typecheck, build, dependency audit and the isolated workflow smoke test before Hostinger deployment
 
 ## Storage and PostgreSQL
 

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError, ipOf, mutationGuard, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
-import { approvedPdf, signatureStoragePath, storagePath } from '@/lib/files';
+import { approvedPdf, removeStoredFile, signatureStoragePath, storagePath } from '@/lib/files';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  let generatedApprovalPath: string | null = null;
   try {
     await mutationGuard(req);
     const user = await requireUser();
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const reference = `DPO-APR-${new Date().getFullYear()}-${String(dakId).padStart(6, '0')}`;
       const filename = `DAAK-${String(dak.diary_number).replace(/[^a-zA-Z0-9-]/g, '-')}-approved-${Date.now()}.pdf`;
       const output = storagePath('APPROVED', filename);
+      generatedApprovalPath = output;
       let stamped;
       try {
         stamped = await approvedPdf(
@@ -92,17 +94,37 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         throw new Error('Approval PDF could not be generated. Please verify the document and selected approval asset');
       }
 
-      const inserted = await db.query<{ id: number }>(
-        `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
-         VALUES($1,'APPROVED',$2,$3,'application/pdf',$4,$5,$6) RETURNING id`,
-        [dakId, `DAAK-${dak.diary_number}-approved.pdf`, filename, stamped.size, stamped.sha, user.id]
-      );
-      await db.query(
-        `INSERT INTO signatures(dak_id,signed_by,signature_method,signed_document,reference_number)
-         VALUES($1,$2,$3,$4,$5)`,
-        [dakId, user.id, approvalMode, inserted.rows[0].id, reference]
-      );
-      nextStatus = 'APPROVED';
+      await db.transaction(async tx => {
+        const inserted = await tx.query<{ id: number }>(
+          `INSERT INTO documents(dak_id,version_type,original_filename,stored_filename,file_type,file_size,sha256,uploaded_by)
+           VALUES($1,'APPROVED',$2,$3,'application/pdf',$4,$5,$6) RETURNING id`,
+          [dakId, `DAAK-${dak.diary_number}-approved.pdf`, filename, stamped.size, stamped.sha, user.id]
+        );
+        await tx.query(
+          `INSERT INTO signatures(dak_id,signed_by,signature_method,signed_document,reference_number)
+           VALUES($1,$2,$3,$4,$5)`,
+          [dakId, user.id, approvalMode, inserted.rows[0].id, reference]
+        );
+        await tx.query(
+          `UPDATE daks SET status='APPROVED',updated_at=now() WHERE id=$1`,
+          [dakId]
+        );
+        await tx.query(
+          `INSERT INTO actions(dak_id,user_id,action,remarks,previous_status,new_status,to_user_id,ip,user_agent)
+           VALUES($1,$2,'APPROVE',$3,$4,'APPROVED',NULL,$5,$6)`,
+          [dakId, user.id, remarks, dak.status, ipOf(req), req.headers.get('user-agent')]
+        );
+        await tx.query(
+          `INSERT INTO notifications(user_id,dak_id,message)
+           SELECT created_by,$1,$2 FROM daks WHERE id=$1`,
+          [dakId, `Dak ${dak.diary_number} was approved by ${user.name}.`]
+        );
+      });
+      // The database transaction and generated file now agree. If snapshot
+      // persistence fails later, keep the committed file/records together.
+      generatedApprovalPath = null;
+      await persistDb();
+      return NextResponse.json({ ok: true, status: 'APPROVED' });
     } else if (action === 'REJECT') {
       if (user.role !== 'DPO') throw new Error('FORBIDDEN');
       if (['APPROVED', 'REJECTED', 'ARCHIVED'].includes(dak.status)) throw new Error('This file is already finalized');
@@ -209,6 +231,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     await persistDb();
     return NextResponse.json({ ok: true, status: nextStatus });
   } catch (error) {
+    if (generatedApprovalPath) await removeStoredFile(generatedApprovalPath);
     return apiError(error);
   }
 }

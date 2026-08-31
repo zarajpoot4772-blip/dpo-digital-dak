@@ -562,6 +562,7 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .detail-tabs > .record-navigation{width:100%;margin:7px 0 8px}
 }
 
+
 /* ================= Document Review Portal redesign (letterhead + paper viewer + case file) ================= */
 :root{--paper:#F3EFE3;--ink:#17241E;--seal-green:#1F5C4C;--seal-red:#9B3A2C;--brass:#A9822F;--brass-dim:#8A6A24;--navy:#0F1D22;--navy-2:#132A31;--navy-3:#0D191C;--navy-line:#25424A;--cream:#EDE8D8;--cream-dim:#AFC0BD;--slate:#7E9491;--seal-green-bright:#4FAE86;--seal-red-bright:#D07461}
 
@@ -728,4 +729,26 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .review-pane>.metadata,.review-pane>.timeline,.review-pane>.notes-pane,.review-pane>.dispatch-pane{padding:20px 16px;border-radius:4px}
  .viewer-actions{width:100%;justify-content:flex-end}
  .page-meta{margin:8px 0 10px}
+}
+
+
+/* Requested review arrangement: navigation and document controls stay in the
+   case-file sidebar; the centre column is reserved for the preview. */
+.review-detail .casefile > .review-toolbar{flex:0 0 auto;display:flex;flex-direction:column;align-items:stretch;gap:10px;margin:0 0 18px;padding-bottom:16px;border-bottom:1px solid var(--navy-line)}
+.review-detail .casefile > .review-toolbar .detail-tab-list{display:grid;grid-template-columns:1fr 1fr;gap:4px;min-width:0;overflow:visible}
+.review-detail .casefile > .review-toolbar .detail-tab-list button{text-align:left;padding:9px 7px;white-space:normal}
+.review-detail .casefile > .review-toolbar > .record-navigation{width:100%;justify-content:center;align-self:stretch;margin:0}
+.review-detail .case-document-controls{flex:0 0 auto;margin:0 0 18px;padding-bottom:16px;border-bottom:1px solid var(--navy-line)}
+.review-detail .case-document-controls .viewer-tools{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:0;background:transparent}
+.review-detail .case-document-controls .viewer-status{font-size:10px;line-height:1.45}
+.review-detail .case-document-controls .viewer-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.review-detail .case-document-controls .version-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.review-detail .case-document-controls .version-switch button,.review-detail .case-document-controls .viewer-actions a{width:100%;margin:0;text-align:center;font-size:9px;padding:7px 5px;white-space:normal}
+.review-detail .case-document-controls .page-meta{margin:7px 0 0;padding:0;border:0;font-size:8px;line-height:1.45;overflow-wrap:anywhere}
+@media(min-width:761px){.review-detail .viewer .review-pane > .viewer-tools,.review-detail .viewer .review-pane > .page-meta{display:none}}
+@media(max-width:760px){
+ .review-detail .case-document-controls{display:none}
+ .review-detail .casefile > .review-toolbar{margin-bottom:14px}
+ .review-detail .casefile > .review-toolbar .detail-tab-list{display:flex;overflow-x:auto;white-space:nowrap}
+ .review-detail .casefile > .review-toolbar .detail-tab-list button{white-space:nowrap}
 }
