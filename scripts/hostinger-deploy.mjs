@@ -76,7 +76,8 @@ async function runCiQualityChecks() {
   const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const preview = spawn(npmCommand, ['run', 'preview'], {
     env,
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: ['ignore', 'pipe', 'pipe'],
+    detached: process.platform !== 'win32'
   });
   preview.stdout.on('data', (chunk) => process.stdout.write(`[preview] ${chunk}`));
   preview.stderr.on('data', (chunk) => process.stderr.write(`[preview] ${chunk}`));
@@ -85,8 +86,14 @@ async function runCiQualityChecks() {
     await runQualityCommand(['run', 'test:smoke'], 'workflow smoke test', env);
   } finally {
     if (preview.exitCode === null) {
-      preview.kill('SIGTERM');
-      await new Promise((resolve) => preview.once('exit', resolve));
+      const exited = new Promise((resolve) => preview.once('exit', resolve));
+      try {
+        if (process.platform === 'win32') preview.kill('SIGTERM');
+        else if (preview.pid) process.kill(-preview.pid, 'SIGTERM');
+      } catch {
+        preview.kill('SIGTERM');
+      }
+      await Promise.race([exited, new Promise((resolve) => setTimeout(resolve, 5000))]);
     }
   }
 }
