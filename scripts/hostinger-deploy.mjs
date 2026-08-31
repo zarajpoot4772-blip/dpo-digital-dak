@@ -1,7 +1,7 @@
 import { cp, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -31,6 +31,64 @@ async function hostingerRequest(endpoint, options = {}) {
     throw new Error(`Hostinger API ${response.status}: ${typeof data === 'string' ? data : JSON.stringify(data)}`);
   }
   return data;
+}
+
+async function runQualityCommand(args, label, env) {
+  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  try {
+    const result = await execFileAsync(npmCommand, args, { env, maxBuffer: 20 * 1024 * 1024 });
+    if (result.stdout) console.log(result.stdout);
+    if (result.stderr) console.error(result.stderr);
+  } catch (error) {
+    if (error.stdout) console.log(error.stdout);
+    if (error.stderr) console.error(error.stderr);
+    throw new Error(`CI quality check failed at ${label}`);
+  }
+}
+
+async function waitForLocalPreview(child) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    if (child.exitCode !== null) throw new Error('Preview server stopped before the smoke test started');
+    try {
+      const response = await fetch('http://127.0.0.1:3000/api/health');
+      if (response.ok) return;
+    } catch {
+      // The development server may need a few seconds to compile its first route.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+  throw new Error('Preview server did not become ready for the smoke test');
+}
+
+async function runCiQualityChecks() {
+  if (process.env.CI !== 'true') return;
+  const env = {
+    ...process.env,
+    PGLITE_MEMORY: '1',
+    NEXT_PUBLIC_ARENA_PREVIEW: '1'
+  };
+  console.log('Running CI quality gate before Hostinger upload.');
+  await runQualityCommand(['ci', '--no-audit', '--no-fund'], 'dependency installation', env);
+  await runQualityCommand(['run', 'typecheck'], 'typecheck', env);
+  await runQualityCommand(['run', 'build'], 'production build', env);
+  await runQualityCommand(['audit', '--audit-level=high'], 'dependency audit', env);
+
+  const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  const preview = spawn(npmCommand, ['run', 'preview'], {
+    env,
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+  preview.stdout.on('data', (chunk) => process.stdout.write(`[preview] ${chunk}`));
+  preview.stderr.on('data', (chunk) => process.stderr.write(`[preview] ${chunk}`));
+  try {
+    await waitForLocalPreview(preview);
+    await runQualityCommand(['run', 'test:smoke'], 'workflow smoke test', env);
+  } finally {
+    if (preview.exitCode === null) {
+      preview.kill('SIGTERM');
+      await new Promise((resolve) => preview.once('exit', resolve));
+    }
+  }
 }
 
 function shouldCopy(relativePath) {
@@ -148,7 +206,14 @@ async function waitForBuild(username, uuid) {
       console.log(`Build log read retry: ${error.message}`);
     }
 
-    const builds = await hostingerRequest(`/api/hosting/v1/accounts/${encodeURIComponent(username)}/websites/${encodeURIComponent(targetDomain)}/nodejs/builds?per_page=50`);
+    let builds;
+    try {
+      builds = await hostingerRequest(`/api/hosting/v1/accounts/${encodeURIComponent(username)}/websites/${encodeURIComponent(targetDomain)}/nodejs/builds?per_page=50`);
+    } catch (error) {
+      console.log(`Build status read retry: ${error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      continue;
+    }
     const list = Array.isArray(builds) ? builds : (builds?.data || []);
     const current = list.find((item) => item.uuid === uuid);
     const state = current?.state || 'running';
@@ -168,6 +233,8 @@ async function waitForBuild(username, uuid) {
   }
   throw new Error('Hostinger build timed out after 30 minutes.');
 }
+
+await runCiQualityChecks();
 
 const { staging, archivePath } = await makeArchive();
 try {
