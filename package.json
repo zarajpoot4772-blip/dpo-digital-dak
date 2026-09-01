@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test:smoke": "node scripts/smoke-test.mjs"
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "pg:backup": "node scripts/pg-backup.mjs",
+    "pg:restore": "node scripts/pg-restore.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",

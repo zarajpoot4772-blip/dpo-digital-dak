@@ -102,7 +102,7 @@ PGlite remains suitable for a single-process prototype only. Do **not** use it f
 
 ## Production deployment gate
 
-Before office use:
+Step-by-step server provisioning (PostgreSQL, systemd, Nginx HTTPS, backups and restore drills) is in [`DEPLOYMENT.md`](DEPLOYMENT.md), with template files under [`deploy/`](deploy/). Before office use:
 
 - Deploy on hardened Linux/Windows server behind HTTPS reverse proxy on office LAN.
 - Move to managed PostgreSQL with least-privilege DB user, encrypted backup and tested restore.
