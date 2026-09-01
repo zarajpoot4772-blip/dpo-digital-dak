@@ -814,3 +814,16 @@ tr.clickable-row:hover td{
   .branch-folders-panel .folder-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding-inline:12px}
   .branch-folders-panel .branch-folder{min-height:68px;padding:10px 8px}
 }
+
+/* Selected branch remains readable after the flat card treatment. */
+.branch-folders-panel .branch-folder.selected,
+.branch-folders-panel .branch-folder.selected .folder-title{
+  color:#1c4032;
+}
+.branch-folders-panel .branch-folder.selected small{
+  color:#4b6a5e;
+}
+.branch-folders-panel .branch-folder.selected .folder-icon{
+  background:#d8eae0;
+  color:#19704e;
+}
