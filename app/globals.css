@@ -795,3 +795,101 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .record-count{display:none}
  .user-chip{max-width:190px}
 }
+
+/* Review portal colour alignment: use the same green, white and soft-grey
+   palette as the main DPO Digital Dak dashboard instead of a separate navy
+   theme. */
+:root{
+  --paper:#ffffff;--ink:#17211d;--seal-green:#0c3327;--seal-red:#a33e38;--brass:#b27823;--brass-dim:#95651d;
+  --navy:#0c3327;--navy-2:#ffffff;--navy-3:#f3f5f4;--cream:#173e2f;--cream-dim:#5f7169;--slate:#73807b;--navy-line:#dfe5e2;
+  --seal-green-bright:#208157;--seal-red-bright:#b64942
+}
+.modal:has(> .review-detail){padding:2vh 2vw;background:#09150fb8;backdrop-filter:none}
+.review-detail{background:#f3f5f4;color:#17211d;border-radius:9px;box-shadow:0 20px 60px #102a1f30}
+.review-letterhead{background:#0c3327;border-bottom-color:#ffffff18}
+.letterhead-eyebrow{color:#b8cec5}
+.letterhead-name{color:#ffffff}
+.letterhead-right{color:#c3d4cd}
+.record-count{color:#c3d4cd}
+.user-chip{border-color:#ffffff25;color:#ffffff}
+.user-chip .dot{background:#c8ad70;color:#0c3327}
+.review-close{border-color:#ffffff25;color:#c3d4cd}
+.review-close:hover{border-color:#c8ad70;color:#ffffff}
+.review-workspace{background:#dfe5e2}
+.viewer{background:#e9efec}
+.casefile{background:#ffffff}
+.review-toolbar{margin-bottom:14px}
+.review-toolbar .detail-tab-list{border-bottom:1px solid #e3e9e6;padding-bottom:2px}
+.review-toolbar .detail-tab-list button{color:#718079}
+.review-toolbar .detail-tab-list button:hover{color:#14563e}
+.review-toolbar .detail-tab-list button.active{color:#14563e;border-bottom-color:#b27823}
+.review-toolbar .detail-tab-list button em{background:#fbf3e7;color:#98601a}
+.review-toolbar .record-navigation{background:#f7faf8;border-color:#ccd9d3;color:#4e6960}
+.review-toolbar .record-navigation span{color:#62756d}
+.review-toolbar .record-navigation button{border-color:#c5d3cd;background:#ffffff;color:#176747}
+.review-toolbar .record-navigation button:hover:not(:disabled){border-color:#176747;background:#eaf6f0;color:#14563e}
+.review-detail .viewer-tools{color:#5f7169}
+.review-detail .viewer-tools .viewer-status{color:#718079}
+.review-detail .viewer-tools .viewer-status .chip{color:#207252}
+.review-detail .viewer-tools .viewer-status .chip::before{background:#208157}
+.review-detail .viewer-tools .viewer-status i{color:#cbd8d2}
+.btn-ghost{color:#176747;background:#ffffff;border-color:#cbd8d2}
+.btn-ghost:hover{border-color:#176747;color:#14563e;background:#f3faf6}
+.btn-primary-outline{color:#ffffff;background:#126345;border-color:#126345}
+.btn-primary-outline:hover{background:#0b5238}
+.review-detail .version-switch button{border-color:#cbd8d2;background:#ffffff;color:#176747}
+.review-detail .version-switch button.active{background:#126345;color:#ffffff;border-color:#126345}
+.page-meta{color:#718079;border-bottom-color:#d8e3de}
+.review-detail .paper-frame .document-reader{background:transparent}
+.review-detail .paper-frame .document-reader-toolbar{background:#ffffff;border-color:#d8e3de;color:#5f7169}
+.review-detail .paper-frame .document-reader-toolbar b{color:#173e2f}
+.review-detail .paper-frame .document-reader-toolbar small{color:#78867f}
+.review-detail .paper-frame .document-page{background:#ffffff;box-shadow:0 1px 0 #ffffff inset,0 12px 28px -12px #19392b38,0 2px 6px #19392b20}
+.review-detail .paper-frame .document-page-label{border-color:#d8e3de;color:#708078}
+.review-detail .paper-frame .document-reader-hint{color:#718079}
+.review-detail .paper-frame .image-view{background:transparent}
+.review-detail .paper-frame .image-view img{background:#ffffff;box-shadow:0 12px 28px -12px #19392b38}
+.review-detail .no-document{background:#ffffff;border-color:#cbd9d2;color:#65736d}
+.review-detail .no-document span{color:#8da49a}
+.review-detail .no-document h3{color:#284b3d}
+.review-detail .no-document p{color:#65736d}
+.review-pane>.metadata,.review-pane>.timeline,.review-pane>.notes-pane,.review-pane>.dispatch-pane{background:#ffffff;color:#17211d;box-shadow:0 12px 28px -12px #19392b30}
+.status-tag{font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+.tone-brass{background:#fbf3e7;color:#98601a;border-color:#ead2aa}
+.tone-amber{background:#fff5e6;color:#98601a;border-color:#ead2aa}
+.tone-red{background:#fbeceb;color:#a33c36;border-color:#efcaca}
+.tone-green{background:#eaf6f0;color:#18734c;border-color:#c5e1d2}
+.tone-slate{background:#eef3f1;color:#52635c;border-color:#d4ded9}
+.tone-purple{background:#eeeafa;color:#5f4f91;border-color:#d8d0ee}
+.case-title{color:#1b4233}
+.case-sub{color:#73807b;border-bottom-color:#dfe5e2}
+.case-sub b{color:#315447}
+.section-label{color:#718079}
+.section-note{color:#65736d}
+.stamp-btn{border-color:#dfe7e2;background:#ffffff}
+.stamp-btn.approve{color:#208157}
+.stamp-btn.approve:hover{border-color:#208157;background:#edf8f2}
+.stamp-btn.reject{color:#b64942}
+.stamp-btn.reject:hover{border-color:#b64942;background:#fff2f1}
+.stamp-label{color:#254c3c}
+.stamp-sub{color:#7b8982}
+.action-item:hover{background:#f4f8f6}
+.action-icon{border-color:#cbd9d2;color:#b27823}
+.action-text .t{color:#315447}
+.action-text .d{color:#7b8982}
+.casefile .role-limit{background:#fff8ea;border-color:#ead2aa;color:#765322}
+.casefile .role-limit b{color:#52635c}
+.casefile .role-limit.finalized{background:#eef3f1;border-color:#d4ded9;color:#52635c}
+.casefile .role-limit.correction-limit{background:#f5f2fd;border-color:#d8d0ee;color:#594b82}
+.casefile .file-state{background:#f3f6f4;border-color:#d4ded9}
+.casefile .file-state small{color:#78857f}
+.casefile .file-state b{color:#315447}
+.casefile .file-state span{color:#81908a}
+.audit-note{background:#fff8ea;border-color:#ead2aa}
+.audit-note .lock{color:#b27823}
+.audit-note p{color:#65736d}
+.review-detail :focus-visible{outline-color:#b27823}
+
+@media(max-width:920px) and (min-width:761px){
+ .review-workspace{grid-template-columns:minmax(0,1fr) 310px;grid-template-rows:none}
+}
