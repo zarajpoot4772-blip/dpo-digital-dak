@@ -771,3 +771,88 @@ tr.clickable-row:hover td{
     grid-column: 2;
   }
 }
+
+/* Branch folder redesign: use a readable tile grid so long branch names are
+   shown fully instead of being squeezed into seven narrow cards. */
+.branch-folders-panel .folder-grid{
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+  padding:14px 22px 20px;
+}
+.branch-folders-panel .branch-folder{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  column-gap:10px;
+  align-items:center;
+  min-width:0;
+  min-height:78px;
+  padding:13px 12px;
+  border:1px solid #dbe6e1;
+  border-radius:10px;
+  background:#fbfdfc;
+  color:#1c4032;
+  box-shadow:0 1px 2px #17332608;
+  transform:none;
+}
+.branch-folders-panel .branch-folder:hover{
+  border-color:#9fc9b4;
+  background:#f1f8f4;
+  box-shadow:0 3px 10px #17332612;
+  transform:translateY(-1px);
+}
+.branch-folders-panel .branch-folder.selected{
+  border-color:#4f9b78;
+  background:#eaf6ef;
+  color:#1c4032;
+  box-shadow:inset 0 0 0 1px #c4e2d2;
+}
+.branch-folders-panel .branch-folder .folder-icon{
+  grid-row:1 / span 2;
+  width:34px;
+  height:28px;
+  margin:0;
+  border-radius:6px 6px 5px 5px;
+  background:#d8a64e;
+  color:transparent;
+  font-size:0;
+}
+.branch-folders-panel .branch-folder .folder-icon:before{
+  left:2px;
+  top:-4px;
+  width:13px;
+  height:6px;
+  background:#e2b867;
+}
+.branch-folders-panel .branch-folder.selected .folder-icon{
+  background:#c9e1d4;
+  color:transparent;
+}
+.branch-folders-panel .folder-title{
+  display:flex;
+  align-items:center;
+  min-width:0;
+  min-height:30px;
+  margin:0;
+  font-size:12px;
+  line-height:1.25;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  overflow-wrap:anywhere;
+}
+.branch-folders-panel .branch-folder small{
+  grid-column:2;
+  margin:2px 0 0;
+  font-size:9px;
+  line-height:1.2;
+  white-space:nowrap;
+  color:#75827c;
+}
+.branch-folders-panel .branch-folder.selected small{color:#4b6a5e}
+@media(max-width:900px){
+  .branch-folders-panel .folder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:560px){
+  .branch-folders-panel .folder-grid{grid-template-columns:1fr;padding-inline:12px}
+}
