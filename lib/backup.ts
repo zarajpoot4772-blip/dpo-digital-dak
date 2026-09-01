@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
-import { getDb, persistDb } from './db';
+import { getDb, persistDb, usingExternalPostgres } from './db';
 import { dataRoot, runtimeRoot, snapshotPath, storageRoot } from './runtime-paths';
 
 const MAX_FILES = 5000;
@@ -65,25 +65,40 @@ export async function listBackupFiles() {
 }
 
 export async function createBackupBytes() {
-  const db = await getDb();
-  await persistDb();
-  let databaseBytes: Uint8Array;
-  try {
-    databaseBytes = new Uint8Array(await fs.readFile(snapshotPath));
-  } catch {
-    const dump = await db.dumpDataDir();
-    databaseBytes = new Uint8Array(await dump.arrayBuffer());
-  }
-  const entries: BackupEntries = {
-    'manifest.json': strToU8(JSON.stringify({
+  await getDb();
+  const entries: BackupEntries = {};
+  if (usingExternalPostgres) {
+    // A managed PostgreSQL server owns its durability: the database is backed
+    // up and restored by the administrator with pg_dump/WAL/PITR. The ZIP
+    // still protects the private original/derived/signature files.
+    entries['manifest.json'] = strToU8(JSON.stringify({
       format: 'dpo-digital-dak-backup',
       format_version: 1,
+      engine: 'postgresql',
+      created_at: new Date().toISOString(),
+      includes: ['originals', 'converted', 'approved', 'signatures'],
+      note: 'PostgreSQL deployment backup: private document files only. Back up and restore the database with department-approved pg_dump/PITR procedures. Keep this file in an approved secure location.'
+    }, null, 2));
+  } else {
+    await persistDb();
+    const db = await getDb();
+    let databaseBytes: Uint8Array;
+    try {
+      databaseBytes = new Uint8Array(await fs.readFile(snapshotPath));
+    } catch {
+      const dump = await (db as any).dumpDataDir();
+      databaseBytes = new Uint8Array(await dump.arrayBuffer());
+    }
+    entries['manifest.json'] = strToU8(JSON.stringify({
+      format: 'dpo-digital-dak-backup',
+      format_version: 1,
+      engine: 'pglite',
       created_at: new Date().toISOString(),
       includes: ['database', 'originals', 'converted', 'approved', 'signatures'],
       note: 'Private prototype backup. Keep this file in an approved secure location.'
-    }, null, 2)),
-    'data/pglite-data.tar': databaseBytes
-  };
+    }, null, 2));
+    entries['data/pglite-data.tar'] = databaseBytes;
+  }
   await readStorageEntries(entries);
   return Buffer.from(zipSync(entries, { level: 6 }));
 }
@@ -110,12 +125,14 @@ function parseBackup(bytes: Uint8Array) {
     if (total > MAX_UNCOMPRESSED_BYTES) throw new Error('Backup expands beyond the 500 MB prototype limit');
   }
   const manifestBytes = files['manifest.json'];
-  const databaseBytes = files['data/pglite-data.tar'];
-  if (!manifestBytes || !databaseBytes) throw new Error('Backup is missing its manifest or database snapshot');
+  if (!manifestBytes) throw new Error('Backup is missing its manifest');
   let manifest: any;
   try { manifest = JSON.parse(strFromU8(manifestBytes)); } catch { throw new Error('Backup manifest is invalid'); }
   if (manifest?.format !== 'dpo-digital-dak-backup' || manifest?.format_version !== 1) throw new Error('Backup was not created by this DPO Digital Dak system');
-  return { files, databaseBytes };
+  const isPostgresqlBackup = manifest?.engine === 'postgresql';
+  const databaseBytes = files['data/pglite-data.tar'];
+  if (!isPostgresqlBackup && !databaseBytes) throw new Error('Backup is missing its database snapshot');
+  return { files, databaseBytes, manifest };
 }
 
 async function exists(target: string) {
@@ -123,7 +140,10 @@ async function exists(target: string) {
 }
 
 export async function restoreBackupBytes(bytes: Uint8Array) {
-  const { files, databaseBytes } = parseBackup(bytes);
+  const { files, databaseBytes, manifest } = parseBackup(bytes);
+  if (manifest?.engine !== 'pglite') {
+    throw new Error('PostgreSQL deployment backups contain document files only; restore the database with the administrator using department-approved pg_dump/PITR archives');
+  }
   const restoreId = crypto.randomUUID();
   const staging = await fs.mkdtemp(path.join(runtimeRoot, `restore-${restoreId}-`));
   const stagingData = path.join(staging, 'data');

@@ -12,7 +12,7 @@ Office client ──HTTPS/LAN── Reverse proxy ── Next.js application
                                             └── backup / audit export targets
 ```
 
-The local prototype combines the application and embedded PostgreSQL-compatible store in one process. Production separates these concerns.
+The local prototype combines the application and embedded PostgreSQL-compatible store (PGlite) in one process. Setting `DATABASE_URL` switches the same SQL to a pooled `pg` adapter against a managed PostgreSQL 16+ server; the adapter boundary lives in `lib/db.ts`. Production separates these concerns.
 
 ## 2. Modules
 
@@ -108,7 +108,7 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 
 ## 9. Known MVP boundaries
 
-- PGlite is single-process prototype storage, not production multi-user PostgreSQL.
+- Local prototype storage is single-process PGlite. `DATABASE_URL` enables the pooled `pg` adapter for managed PostgreSQL; credential handling, TLS termination and DB-side hardening remain deployment work.
 - Login lockout is now stored in the prototype database per username/source-IP key; production should use managed PostgreSQL with a shared lockout policy.
 - Controlled stamp is not PKI.
 - No OCR, email/SMS, antivirus quarantine, Excel/PDF report export or multi-office tenancy yet; restore and CSV reporting are available in the prototype.
