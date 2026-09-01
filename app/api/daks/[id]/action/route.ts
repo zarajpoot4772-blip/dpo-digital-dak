@@ -12,6 +12,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const user = await requireUser();
     const { id } = await params;
     const dakId = Number(id);
+    if (!Number.isInteger(dakId) || dakId < 1) throw new Error('Invalid Dak id');
     const body = await req.json();
     const action = String(body.action || '').toUpperCase();
     const remarks = String(body.remarks || '').trim();

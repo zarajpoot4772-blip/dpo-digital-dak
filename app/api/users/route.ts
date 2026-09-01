@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { apiError, mutationGuard, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
+import { validatePassword } from '@/lib/password';
 
 export async function GET() {
   try {
@@ -27,7 +28,8 @@ export async function POST(req: NextRequest) {
     const username = String(body.username || '').trim().toLowerCase();
     const password = String(body.password || '');
     const role = String(body.role || '');
-    if (!name || !username || password.length < 10) throw new Error('Name, username and a 10-character password are required');
+    if (!name || !username || !password) throw new Error('Name, username and password are required');
+    validatePassword(password);
     if (name.length > 150 || !/^[a-z0-9._-]{3,50}$/.test(username)) throw new Error('Invalid name or username');
     if (!['ADMIN','DPO','CLERK','OFFICER','BRANCH_HEAD'].includes(role)) throw new Error('Invalid role');
 

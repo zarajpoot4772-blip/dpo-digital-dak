@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { apiError, mutationGuard, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
+import { validatePassword } from '@/lib/password';
 
 export async function GET() {
   try {
@@ -31,7 +32,8 @@ export async function POST(req: NextRequest) {
     const password = String(body.password || '');
     const department = String(body.department || 'DPO Office').trim();
 
-    if (!name || !code || !headName || !username || password.length < 10) throw new Error('Branch, code, head name, username and 10-character password are required');
+    if (!name || !code || !headName || !username || !password) throw new Error('Branch, code, head name, username and password are required');
+    validatePassword(password);
     if (name.length > 120 || headName.length > 150 || department.length > 120) throw new Error('One or more fields are too long');
     if (!/^[A-Z0-9-]{2,12}$/.test(code)) throw new Error('Branch code must be 2-12 letters, numbers or hyphens');
     if (!/^[a-z0-9._-]{3,50}$/.test(username)) throw new Error('Username may contain lowercase letters, numbers, dots, underscores and hyphens');

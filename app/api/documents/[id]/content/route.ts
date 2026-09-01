@@ -16,6 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const user = await requireUser();
     const { id } = await params;
     const documentId = Number(id);
+    if (!Number.isInteger(documentId) || documentId < 1) throw new Error('Invalid document id');
     const db = await getDb();
     const result = await db.query<any>(
       `SELECT doc.*,d.assigned_to,d.created_by,d.branch,d.status AS dak_status

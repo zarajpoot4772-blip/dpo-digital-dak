@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from 'fs/promises';
 import path from 'path';
 import { dataRoot, snapshotPath, storageRoot, usingExternalRuntimeRoot } from './runtime-paths';
+import { validatePassword } from './password';
 
 type DB = PGlite;
 declare global { var __dpoDb: Promise<DB> | undefined; var __dpoPersist: Promise<void> | undefined; }
@@ -95,9 +96,7 @@ async function init(){
  if(Number(count.rows[0].count)===0){
   const productionInstall=process.env.NODE_ENV==='production'&&process.env.PGLITE_MEMORY!=='1';
   const initialAdminPassword=process.env.INITIAL_ADMIN_PASSWORD?.trim();
-  if(productionInstall&&(!initialAdminPassword||initialAdminPassword.length<10)){
-   throw new Error('INITIAL_ADMIN_PASSWORD (at least 10 characters) is required before first production startup');
-  }
+  if(productionInstall) validatePassword(initialAdminPassword || '');
   const users:Array<[string,string,string,string,string,string]>=productionInstall
    ? [['System Administrator','admin',initialAdminPassword as string,'ADMIN','DPO Office','IT']]
    : [['System Administrator','admin','Admin@12345','ADMIN','DPO Office','IT'],['District Police Officer','dpo','Dpo@12345','DPO','Police','DPO Office'],['Dak Clerk','clerk','Clerk@12345','CLERK','DPO Office','Dak Branch'],['SP Investigation','sp.inv','Officer@12345','OFFICER','Police','Investigation'],['Branch Head Operations','head.ops','Branch@12345','BRANCH_HEAD','DPO Office','Operations Branch']];

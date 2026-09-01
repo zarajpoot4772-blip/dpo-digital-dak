@@ -7,6 +7,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     const user = await requireUser();
     const { id } = await params;
     const dakId = Number(id);
+    if (!Number.isInteger(dakId) || dakId < 1) throw new Error('Invalid Dak id');
     const db = await getDb();
     const result = await db.query(
       `SELECT d.*,a.name assigned_name,c.name created_name
