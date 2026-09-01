@@ -85,9 +85,20 @@ These demo accounts and sample Dak data are for local development/temporary prev
 
 ## Storage and PostgreSQL
 
-The runnable local prototype uses **PGlite**, an embedded PostgreSQL engine, so no database service is required. The schema and SQL use PostgreSQL types and constraints. For production, deploy PostgreSQL 16+ and replace the `PGlite` adapter in `lib/db.ts` with a pooled `pg` adapter; SQL and application query boundaries are already isolated there.
+The local prototype uses **PGlite**, an embedded PostgreSQL engine, so no database service is required. The schema and SQL use PostgreSQL types and constraints, and every query goes through one adapter boundary in `lib/db.ts`.
 
-PGlite is suitable for a single-process prototype only. Do **not** use it for multi-user production deployment.
+To run against a real **PostgreSQL 16+** server, set `DATABASE_URL` (and optionally `DB_POOL_MAX`):
+
+```bash
+# create a least-privilege database once:
+#   CREATE ROLE dpo_app LOGIN PASSWORD '...';
+#   CREATE DATABASE dpo_dak OWNER dpo_app;
+DATABASE_URL="postgresql://dpo_app:PASSWORD@127.0.0.1:5432/dpo_dak" npm start
+```
+
+The application then uses a pooled `pg` adapter automatically: the same schema, seed logic, transactions and parameterized SQL run unchanged, while PGlite tar snapshots are disabled because the PostgreSQL server manages its own durability. Add `?sslmode=require` to the URL for servers that require TLS. In PostgreSQL mode the admin backup ZIP contains private document files only; back up and restore the database itself with department-approved `pg_dump`/WAL/PITR procedures.
+
+PGlite remains suitable for a single-process prototype only. Do **not** use it for multi-user production deployment.
 
 ## Production deployment gate
 

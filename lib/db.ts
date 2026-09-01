@@ -7,11 +7,62 @@ import path from 'path';
 import { dataRoot, snapshotPath, storageRoot, usingExternalRuntimeRoot } from './runtime-paths';
 import { validatePassword } from './password';
 
-type DB = PGlite;
-declare global { var __dpoDb: Promise<DB> | undefined; var __dpoPersist: Promise<void> | undefined; }
+// Unified database boundary. The local prototype runs the embedded PGlite
+// engine; setting DATABASE_URL switches the exact same SQL to a pooled
+// node-postgres (pg) connection against a managed PostgreSQL 16+ server.
+// SQL, seeding and call sites are engine-agnostic on purpose.
+export type DbRow=Record<string,any>;
+export type DbResult<T=DbRow>={rows:T[]};
+export interface DbClient{
+ query<T=DbRow>(sql:string,params?:unknown[]):Promise<DbResult<T>>;
+ exec(sql:string):Promise<unknown>;
+ transaction<T>(fn:(tx:DbClient)=>Promise<T>):Promise<T>;
+ close():Promise<void>;
+}
 
-async function writeSnapshot(db:DB){
- if(process.env.PGLITE_MEMORY==='1')return;
+const databaseUrl=process.env.DATABASE_URL?.trim();
+export const usingExternalPostgres=Boolean(databaseUrl);
+
+declare global { var __dpoDb: Promise<DbClient> | undefined; var __dpoPersist: Promise<void> | undefined; }
+
+// The active PGlite instance, when the embedded engine is in use. Only this
+// engine needs the manual tar snapshot; a PostgreSQL server persists itself.
+let activePglite:PGlite|null=null;
+
+async function createPgPoolClient(url:string):Promise<DbClient>{
+ const pgModule:any=await import('pg');
+ const PgPool=pgModule.Pool||pgModule.default?.Pool;
+ if(!PgPool)throw new Error('The pg PostgreSQL driver could not be loaded');
+ const parsed=new URL(url);
+ const sslMode=parsed.searchParams.get('sslmode')||'';
+ const wantsSsl=['require','verify-ca','verify-full'].includes(sslMode)||parsed.searchParams.get('ssl')==='true';
+ const pool=new PgPool({connectionString:url,max:Number(process.env.DB_POOL_MAX||10)||10,idleTimeoutMillis:30000,connectionTimeoutMillis:10000,...(wantsSsl?{ssl:{rejectUnauthorized:false}}:{})});
+ await pool.query('SELECT 1'); // fail fast at startup with the real connection error
+ const client:DbClient={
+  query<T=DbRow>(sql:string,params?:unknown[]){return pool.query(sql,params as any[]) as Promise<DbResult<T>>},
+  exec(sql:string){return pool.query(sql)},
+  // A pg Pool has no transaction helper of its own: a dedicated checked-out
+  // connection runs BEGIN/COMMIT/ROLLBACK so every caller keeps the same
+  // db.transaction(async tx => ...) contract PGlite already provides.
+  async transaction<T>(fn:(tx:DbClient)=>Promise<T>){
+   const conn=await pool.connect();
+   const tx:DbClient={
+    query<T=DbRow>(sql:string,params?:unknown[]){return conn.query(sql,params as any[]) as Promise<DbResult<T>>},
+    exec(sql:string){return conn.query(sql)},
+    transaction(){return Promise.reject(new Error('Nested transactions are not supported'))},
+    close(){return Promise.reject(new Error('Cannot close a client inside a transaction'))}
+   };
+   try{await conn.query('BEGIN');const out=await fn(tx);await conn.query('COMMIT');return out}
+   catch(error){try{await conn.query('ROLLBACK')}catch{/* keep the original error */}throw error}
+   finally{conn.release()}
+  },
+  close(){return pool.end().then(()=>undefined)}
+ };
+ return client;
+}
+
+async function writeSnapshot(db:PGlite){
+ if(usingExternalPostgres||process.env.PGLITE_MEMORY==='1')return;
  const dump=await db.dumpDataDir();
  const temp=`${snapshotPath}.tmp`;
  await fs.writeFile(temp,Buffer.from(await dump.arrayBuffer()));
@@ -20,9 +71,11 @@ async function writeSnapshot(db:DB){
 }
 
 export async function persistDb(){
- if(process.env.PGLITE_MEMORY==='1')return;
- const db=await getDb();
- global.__dpoPersist=(global.__dpoPersist||Promise.resolve()).then(()=>writeSnapshot(db));
+ if(usingExternalPostgres||process.env.PGLITE_MEMORY==='1')return;
+ await getDb(); // the engine must be initialized before it can be snapshotted
+ const pglite=activePglite;
+ if(!pglite)return;
+ global.__dpoPersist=(global.__dpoPersist||Promise.resolve()).then(()=>writeSnapshot(pglite));
  await global.__dpoPersist;
 }
 
@@ -40,9 +93,11 @@ async function makeSamplePdf(filePath:string){
 
 async function migrateLegacyRuntimeData(){
  if(!usingExternalRuntimeRoot)return;
- const legacySnapshot=path.join(process.cwd(),'data','pglite-data.tar');
- try{await fs.access(snapshotPath)}catch{
-  try{await fs.copyFile(legacySnapshot,snapshotPath)}catch{/* first deployment may have no legacy snapshot */}
+ if(!usingExternalPostgres){
+  const legacySnapshot=path.join(process.cwd(),'data','pglite-data.tar');
+  try{await fs.access(snapshotPath)}catch{
+   try{await fs.copyFile(legacySnapshot,snapshotPath)}catch{/* first deployment may have no legacy snapshot */}
+  }
  }
  for(const folder of ['originals','derived','signatures']){
   const source=path.join(process.cwd(),'storage',folder);
@@ -64,13 +119,24 @@ async function init(){
  await fs.mkdir(path.join(storageRoot,'derived'),{recursive:true});
  await fs.mkdir(path.join(storageRoot,'signatures'),{recursive:true});
  await migrateLegacyRuntimeData();
- // Windows-compatible persistence: PostgreSQL runs in memory and is atomically
- // snapshotted to the runtime data directory after durable workflow mutations.
- let loadDataDir:Blob|undefined;
- if(process.env.PGLITE_MEMORY!=='1'){
-  try{loadDataDir=new Blob([await fs.readFile(snapshotPath)]);}catch(error:any){if(error?.code!=='ENOENT')throw error;}
+ // Windows-compatible persistence (PGlite mode): PostgreSQL runs in memory and
+ // is atomically snapshotted to the runtime data directory after durable
+ // workflow mutations. With DATABASE_URL set, a pooled pg connection talks to
+ // a real PostgreSQL server that manages its own durability instead.
+ let db:DbClient;
+ if(usingExternalPostgres){
+  db=await createPgPoolClient(databaseUrl as string);
+  console.log('DATABASE: pooled PostgreSQL (pg) via DATABASE_URL');
+ }else{
+  let loadDataDir:Blob|undefined;
+  if(process.env.PGLITE_MEMORY!=='1'){
+   try{loadDataDir=new Blob([await fs.readFile(snapshotPath)]);}catch(error:any){if(error?.code!=='ENOENT')throw error;}
+  }
+  const pglite=loadDataDir?new PGlite({loadDataDir}):new PGlite();
+  activePglite=pglite;
+  db=pglite as unknown as DbClient;
+  console.log('DATABASE: embedded PGlite prototype (set DATABASE_URL for managed PostgreSQL)');
  }
- const db=loadDataDir?new PGlite({loadDataDir}):new PGlite();
  await db.exec(`
  CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,name TEXT NOT NULL,username TEXT UNIQUE NOT NULL,password_hash TEXT NOT NULL,must_change_password BOOLEAN NOT NULL DEFAULT false,password_changed_at TIMESTAMPTZ NOT NULL DEFAULT now(),role TEXT NOT NULL CHECK(role IN ('ADMIN','DPO','CLERK','OFFICER','BRANCH_HEAD')),department TEXT,branch TEXT,totp_secret TEXT,totp_pending_secret TEXT,totp_enabled BOOLEAN NOT NULL DEFAULT false,active BOOLEAN NOT NULL DEFAULT true,created_at TIMESTAMPTZ NOT NULL DEFAULT now());
  CREATE TABLE IF NOT EXISTS login_throttle(lock_key TEXT PRIMARY KEY,username TEXT NOT NULL,ip TEXT NOT NULL,failed_count INTEGER NOT NULL DEFAULT 0,locked_until TIMESTAMPTZ,updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
@@ -112,7 +178,7 @@ async function init(){
  }
 
  try{await indexExistingDocumentText(db)}catch(error){console.error('DOCUMENT_TEXT_INDEX_STARTUP_ERROR',error)}
- if(process.env.PGLITE_MEMORY!=='1')await writeSnapshot(db);
+ if(!usingExternalPostgres&&process.env.PGLITE_MEMORY!=='1')await writeSnapshot(activePglite as PGlite);
  return db;
 }
 export function getDb(){ if(!global.__dpoDb) global.__dpoDb=init(); return global.__dpoDb; }
