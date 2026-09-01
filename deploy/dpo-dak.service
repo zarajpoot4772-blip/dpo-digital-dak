@@ -21,6 +21,9 @@ WorkingDirectory=/opt/dpo-digital-dak
 EnvironmentFile=/etc/dpo-dak.env
 Environment=NODE_ENV=production
 Environment=PORT=3000
+# npm needs a writable HOME for its cache; the service user's home is the
+# runtime root, outside ProtectHome's scope (/home, /root, /run/user only).
+Environment=HOME=/var/lib/dpo-dak
 # Runtime data (private document storage) stays outside the deploy directory:
 # set DPO_RUNTIME_ROOT in /etc/dpo-dak.env, e.g. /var/lib/dpo-dak
 ExecStart=/usr/bin/npm start
