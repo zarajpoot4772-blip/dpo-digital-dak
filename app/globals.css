@@ -752,3 +752,46 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
  .review-detail .casefile > .review-toolbar .detail-tab-list{display:flex;overflow-x:auto;white-space:nowrap}
  .review-detail .casefile > .review-toolbar .detail-tab-list button{white-space:nowrap}
 }
+
+/* Final compact sidebar sizing: keep the case file usable at 100% browser
+   zoom while reserving the centre for the document preview. */
+@media(min-width:761px){
+ .review-workspace{grid-template-columns:minmax(0,1fr) clamp(310px,28vw,390px)}
+ .casefile{padding:18px 15px 20px}
+ .review-detail .casefile > .review-toolbar{gap:8px;margin-bottom:14px;padding-bottom:12px}
+ .review-detail .casefile > .review-toolbar .detail-tab-list{gap:3px}
+ .review-detail .casefile > .review-toolbar .detail-tab-list button{padding:7px 6px;font-size:9px;line-height:1.2}
+ .review-detail .casefile > .review-toolbar .record-navigation{min-height:28px}
+ .review-detail .casefile > .review-toolbar .record-navigation button{min-width:66px;height:24px;padding:3px 6px;font-size:9px}
+ .review-detail .casefile > .review-toolbar .record-navigation span{min-width:40px;font-size:9px}
+ .case-title{font-size:20px;line-height:1.2;margin-bottom:7px}
+ .case-sub{font-size:10px;line-height:1.5;margin-bottom:14px;padding-bottom:13px}
+ .section-label{font-size:10px}
+ .section-note{font-size:10px;margin-bottom:11px}
+ .stamp-row{gap:8px;margin-bottom:13px}
+ .stamp-btn{padding:10px 6px 9px;gap:5px;border-radius:8px}
+ .stamp-circle{width:34px;height:34px;font-size:14px}
+ .stamp-label{font-size:11px}
+ .stamp-sub{font-size:9px}
+ .action-list{gap:1px;margin-bottom:14px}
+ .action-item{gap:9px;padding:8px 6px;border-radius:6px}
+ .action-icon{width:26px;height:26px;font-size:11px}
+ .action-text .t{font-size:11px}
+ .action-text .d{font-size:9px}
+ .casefile .role-limit{padding:8px 9px;font-size:9px;line-height:1.4;margin-bottom:10px}
+ .casefile .file-state{padding:10px;margin-bottom:10px}
+ .casefile .file-state small{font-size:8px}
+ .casefile .file-state b{font-size:10px;margin:3px 0}
+ .casefile .file-state span{font-size:8px}
+ .audit-note{padding:10px;gap:8px}
+ .audit-note p{font-size:9px;line-height:1.4}
+}
+/* Keep a two-pane sidebar at tablet width; stack only on genuinely narrow screens. */
+@media(min-width:761px) and (max-width:920px){
+ .review-workspace{grid-template-columns:minmax(0,1fr) 310px;grid-template-rows:none}
+ .review-letterhead{padding:13px 16px}
+ .viewer{padding:14px 12px 18px}
+ .casefile{padding:16px 12px 18px}
+ .record-count{display:none}
+ .user-chip{max-width:190px}
+}
