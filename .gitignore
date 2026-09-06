@@ -31,3 +31,6 @@ Thumbs.db
 .vscode/
 .idea/
 tsconfig.tsbuildinfo
+
+# Runtime backup archives created by the app
+backups/

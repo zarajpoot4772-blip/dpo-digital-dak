@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test:smoke": "node scripts/smoke-test.mjs"
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "pg:backup": "node scripts/pg-backup.mjs",
+    "pg:restore": "node scripts/pg-restore.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",
@@ -23,6 +25,7 @@
     "pdf-lib": "^1.17.1",
     "pdf2json": "^4.0.3",
     "pdfjs-dist": "5.5.207",
+    "pg": "^8.23.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.17.2",
+    "@types/pg": "^8.23.1",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",

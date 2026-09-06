@@ -1,0 +1,46 @@
+# DPO Digital Dak — systemd service template
+# Install:
+#   sudo cp deploy/dpo-dak.service /etc/systemd/system/dpo-dak.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now dpo-dak
+#
+# Secrets (DATABASE_URL, INITIAL_ADMIN_PASSWORD) live in /etc/dpo-dak.env,
+# readable only by the service user:
+#   sudo chown root:dpo /etc/dpo-dak.env && sudo chmod 640 /etc/dpo-dak.env
+
+[Unit]
+Description=DPO Digital Dak & File Management System
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dpo
+Group=dpo
+WorkingDirectory=/opt/dpo-digital-dak
+EnvironmentFile=/etc/dpo-dak.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+# npm needs a writable HOME for its cache; the service user's home is the
+# runtime root, outside ProtectHome's scope (/home, /root, /run/user only).
+Environment=HOME=/var/lib/dpo-dak
+# Runtime data (private document storage) stays outside the deploy directory:
+# set DPO_RUNTIME_ROOT in /etc/dpo-dak.env, e.g. /var/lib/dpo-dak
+ExecStart=/usr/bin/npm start
+Restart=on-failure
+RestartSec=5
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/dpo-dak /opt/dpo-digital-dak/.next
+RestrictSUIDSGID=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target
