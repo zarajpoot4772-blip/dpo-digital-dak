@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
+import fs from 'node:fs/promises';
 import { apiError, ipOf, mutationGuard, requireUser } from '@/lib/auth';
 import { getDb, persistDb } from '@/lib/db';
 import { approvedPdf, removeStoredFile, signatureStoragePath, storagePath } from '@/lib/files';
+import { PDFDocument } from 'pdf-lib';
 
 export const runtime = 'nodejs';
+
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let generatedApprovalPath: string | null = null;
@@ -71,6 +76,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         throw new Error('Valid approval position is required');
       }
 
+      // For Word originals the browser renders the real layout and sends it
+      // back as base_pdf, so the approval copy keeps Word tables/Urdu layout
+      // even on hosts without LibreOffice. The rendered PDF must match the
+      // preview the DPO clicked on; it is stamped exactly like a server PDF.
+      const basePdf = String(body.base_pdf || '').trim();
+      let approvalSourcePath = storagePath(document.rows[0].version_type, document.rows[0].stored_filename);
+      let approvalSourceType = document.rows[0].file_type;
+      let renderedPdfPath: string | null = null;
+      if (basePdf) {
+        const docxOriginal = await db.query<any>(
+          `SELECT id FROM documents WHERE dak_id=$1 AND version_type='ORIGINAL' AND file_type=$2 LIMIT 1`,
+          [dakId, DOCX_MIME]
+        );
+        if (!docxOriginal.rows[0]) throw new Error('Rendered approval PDF is accepted only for a Word original');
+        let pdfBytes: Buffer;
+        try {
+          pdfBytes = Buffer.from(basePdf, 'base64');
+        } catch {
+          throw new Error('Invalid rendered approval PDF');
+        }
+        if (pdfBytes.length < 8 || pdfBytes.length > 80 * 1024 * 1024 || pdfBytes.subarray(0, 5).toString('ascii') !== '%PDF-') {
+          throw new Error('Invalid rendered approval PDF');
+        }
+        let renderedPages = 0;
+        try {
+          renderedPages = (await PDFDocument.load(pdfBytes)).getPageCount();
+        } catch {
+          throw new Error('Invalid rendered approval PDF');
+        }
+        if (signaturePage > renderedPages) throw new Error(`Approval page must be between 1 and ${renderedPages}`);
+        renderedPdfPath = storagePath('CONVERTED', `client-render-${crypto.randomUUID()}.pdf`);
+        await fs.writeFile(renderedPdfPath, pdfBytes, { flag: 'wx' });
+        approvalSourcePath = renderedPdfPath;
+        approvalSourceType = 'application/pdf';
+      }
+
       const reference = `DPO-APR-${new Date().getFullYear()}-${String(dakId).padStart(6, '0')}`;
       const filename = `DAAK-${String(dak.diary_number).replace(/[^a-zA-Z0-9-]/g, '-')}-approved-${Date.now()}.pdf`;
       const output = storagePath('APPROVED', filename);
@@ -78,8 +119,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       let stamped;
       try {
         stamped = await approvedPdf(
-          storagePath(document.rows[0].version_type, document.rows[0].stored_filename),
-          document.rows[0].file_type,
+          approvalSourcePath,
+          approvalSourceType,
           output,
           {
             signaturePath: approvalMode === 'SIGNATURE_ONLY' ? signatureStoragePath(configuredAsset.rows[0].stored_filename) : undefined,
@@ -93,6 +134,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       } catch (error) {
         console.error('APPROVAL_PDF_ERROR', error);
         throw new Error('Approval PDF could not be generated. Please verify the document and selected approval asset');
+      } finally {
+        if (renderedPdfPath) await removeStoredFile(renderedPdfPath);
       }
 
       await db.transaction(async tx => {

@@ -58,6 +58,7 @@ jobs:
             exit 1
           fi
           npm run test:smoke
+          node scripts/approval-pdf-test.mjs
 
       - name: Show preview server log on failure
         if: failure()
