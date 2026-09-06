@@ -13,6 +13,10 @@ Open `http://localhost:3000`.
 
 `npm run dev` uses Windows-compatible atomic database snapshots at `data/pglite-data.tar` plus private files under `storage/`. The snapshot is loaded automatically after restart. The Arena-only `npm run preview` command uses temporary in-memory data and should not be used for a local office installation. On a production managed host, the app automatically moves its PGlite snapshot and private storage to a persistent runtime directory under the host user's home directory, outside the deployed source tree, so a code redeployment does not replace the data.
 
+### Automated checks
+
+Every push and pull request runs through `.github/workflows/ci.yml`: `npm ci`, TypeScript typecheck, a production `next build`, and the live API smoke suite (`npm run test:smoke` against the in-memory preview server), which now also verifies that a scanned image upload is OCR-indexed and keyword-searchable.
+
 ### Prototype accounts
 
 | Role | Username | Password |
