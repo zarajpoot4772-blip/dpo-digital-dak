@@ -58,12 +58,21 @@ async function convertDocxTextFallback(bytes:Buffer,output:string){
  const extracted=await mammoth.extractRawText({buffer:bytes});
  const text=(extracted.value||'').trim()||'No readable text was found in the uploaded Word document.';
  const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);
- const fontBytes=await fs.readFile(path.join(process.cwd(),'assets','fonts','DejaVuSans.ttf'));
- const font=await pdf.embedFont(fontBytes,{subset:true});
- const pageSize:[number,number]=[595.28,841.89],margin=52,fontSize=10.5,lineHeight=15,maxWidth=pageSize[0]-margin*2;
+ const latinFontBytes=await fs.readFile(path.join(process.cwd(),'assets','fonts','DejaVuSans.ttf'));
+ const latinFont=await pdf.embedFont(latinFontBytes,{subset:true});
+ let urduFont=latinFont;
+ try{
+  const urduFontBytes=await fs.readFile(path.join(process.cwd(),'assets','fonts','NotoNastaliqUrdu.ttf'));
+  urduFont=await pdf.embedFont(urduFontBytes,{subset:true});
+ }catch(error){console.warn('URDU_FONT_LOAD_ERROR',error)}
+ const pageSize:[number,number]=[595.28,841.89],margin=52,latinSize=10.5,urduSize=13,latinLineHeight=15,urduLineHeight=24,maxWidth=pageSize[0]-margin*2;
+ const isRtl=(value:string)=>/[\u0590-\u08ff]/.test(value);
+ const fontFor=(value:string)=>isRtl(value)?urduFont:latinFont;
+ const sizeFor=(value:string)=>isRtl(value)?urduSize:latinSize;
+ const lineHeightFor=(value:string)=>isRtl(value)?urduLineHeight:latinLineHeight;
  let page=pdf.addPage(pageSize),y=pageSize[1]-margin;
- const addLine=(line:string)=>{if(y<margin+lineHeight){page=pdf.addPage(pageSize);y=pageSize[1]-margin}page.drawText(line||' ',{x:margin,y,size:fontSize,font,color:rgb(.05,.08,.07)});y-=lineHeight};
- const wrap=(line:string)=>{if(!line.trim())return [''];const visualLine=shapeRtlForPdf(line);const words=visualLine.replace(/\t/g,'    ').split(/\s+/);const lines:string[]=[];let current='';for(const word of words){const candidate=current?`${current} ${word}`:word;if(font.widthOfTextAtSize(candidate,fontSize)<=maxWidth)current=candidate;else{if(current)lines.push(current);if(font.widthOfTextAtSize(word,fontSize)<=maxWidth)current=word;else{let chunk='';for(const ch of word){if(font.widthOfTextAtSize(chunk+ch,fontSize)>maxWidth){lines.push(chunk);chunk=ch}else chunk+=ch}current=chunk}}}if(current)lines.push(current);return lines};
+ const addLine=(line:string)=>{const lineHeight=lineHeightFor(line);if(y<margin+lineHeight){page=pdf.addPage(pageSize);y=pageSize[1]-margin}page.drawText(line||' ',{x:margin,y,size:sizeFor(line),font:fontFor(line),color:rgb(.05,.08,.07)});y-=lineHeight};
+ const wrap=(line:string)=>{if(!line.trim())return [''];const visualLine=shapeRtlForPdf(line);const font=fontFor(visualLine);const size=sizeFor(visualLine);const words=visualLine.replace(/\t/g,'    ').split(/\s+/);const lines:string[]=[];let current='';for(const word of words){const candidate=current?`${current} ${word}`:word;if(font.widthOfTextAtSize(candidate,size)<=maxWidth)current=candidate;else{if(current)lines.push(current);if(font.widthOfTextAtSize(word,size)<=maxWidth)current=word;else{let chunk='';for(const ch of word){if(font.widthOfTextAtSize(chunk+ch,size)>maxWidth){lines.push(chunk);chunk=ch}else chunk+=ch}current=chunk}}}if(current)lines.push(current);return lines};
  for(const raw of text.slice(0,250000).split(/\r?\n/))for(const line of wrap(raw))addLine(line);
  const out=await pdf.save();await fs.writeFile(output,out,{flag:'wx'});return Buffer.from(out);
 }
