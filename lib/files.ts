@@ -62,7 +62,7 @@ async function convertDocxTextFallback(bytes:Buffer,output:string){
  const latinFont=await pdf.embedFont(latinFontBytes,{subset:true});
  let urduFont=latinFont;
  try{
-  const urduFontBytes=await fs.readFile(path.join(process.cwd(),'assets','fonts','NotoNastaliqUrdu.ttf'));
+  const urduFontBytes=await fs.readFile(path.join(process.cwd(),'assets','fonts','NotoNaskhArabic.ttf'));
   urduFont=await pdf.embedFont(urduFontBytes,{subset:true});
  }catch(error){console.warn('URDU_FONT_LOAD_ERROR',error)}
  const pageSize:[number,number]=[595.28,841.89],margin=52,latinSize=10.5,urduSize=13,latinLineHeight=15,urduLineHeight=24,maxWidth=pageSize[0]-margin*2;
