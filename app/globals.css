@@ -893,3 +893,16 @@ html,body{overflow-x:hidden}.detail,.detail-body,.viewer-area{min-width:0}.detai
 @media(max-width:920px) and (min-width:761px){
  .review-workspace{grid-template-columns:minmax(0,1fr) 310px;grid-template-rows:none}
 }
+
+/* ---- Browser Word layout preview (DOCX originals) ----------------------- */
+.word-doc-preview{width:100%}
+.word-doc-pages{width:min(100%,810px);margin:0 auto;padding:14px 0 6px;display:flex;flex-direction:column;align-items:center;gap:16px;overflow-x:auto;zoom:.88}
+@media(max-width:900px){.word-doc-pages{zoom:.74}}
+@media(max-width:640px){.word-doc-pages{zoom:.6}}
+.word-doc-pages .dpo-docx-page{flex:0 0 auto;width:794px!important;max-width:none!important;min-height:auto!important;margin:0 auto;background:#fff;border:1px solid #aebbb5;box-shadow:0 5px 18px #17332620;position:relative;overflow:hidden}
+.word-doc-pages .dpo-docx-page *{box-sizing:border-box}
+.word-doc-building{display:flex;flex-direction:column;align-items:center;gap:10px;padding:34px 18px;color:#315548;text-align:center}
+.word-doc-building b{font-size:12px}
+.word-doc-building small{font-size:10px;color:#668078;max-width:420px;line-height:1.5}
+.docx-capture-holder{position:fixed;left:-10000px;top:0;width:800px;background:#fff;z-index:-1;pointer-events:none}
+.docx-capture-holder .dpo-docx-page{width:794px!important;min-height:auto!important;margin:0;background:#fff}
