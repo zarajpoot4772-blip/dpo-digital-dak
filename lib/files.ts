@@ -9,6 +9,11 @@ import { promisify } from 'util';
 import { extractDocumentText } from './document-text';
 import { dataRoot, signaturePath, storagePath as runtimeStoragePath, storageRoot } from './runtime-paths';
 
+const rtlShaper = require('arabic-persian-reshaper') as { ArabicShaper: { convertArabic: (value: string) => string } };
+const bidiModule = require('bidi-js') as any;
+const bidiFactory = typeof bidiModule === 'function' ? bidiModule : bidiModule.default;
+const bidi = bidiFactory();
+
 const execFileAsync=promisify(execFile);
 let officeConversionQueue:Promise<unknown>=Promise.resolve();
 function queueOfficeConversion<T>(task:()=>Promise<T>):Promise<T>{
@@ -28,6 +33,27 @@ function validSignature(bytes: Buffer, mime: string) {
   return false;
 }
 
+function shapeRtlForPdf(value: string) {
+  if (!/[\u0590-\u08ff]/.test(value)) return value;
+  // pdf-lib draws glyphs in visual order and does not perform Arabic shaping
+  // or the Unicode bidi pass itself. Shape Urdu/Arabic letters first, then
+  // reorder the visual runs so Nastaliq/Naskh-capable fonts display normally.
+  const shaped = rtlShaper.ArabicShaper.convertArabic(value);
+  const embedding = bidi.getEmbeddingLevels(shaped, 'rtl');
+  const characters = shaped.split('');
+  const flips = bidi.getReorderSegments(shaped, embedding);
+  for (const [start, end] of flips) {
+    for (let left = start, right = end; left < right; left += 1, right -= 1) {
+      const swap = characters[left];
+      characters[left] = characters[right];
+      characters[right] = swap;
+    }
+  }
+  const mirrored = bidi.getMirroredCharactersMap(shaped, embedding);
+  for (const [index, character] of mirrored) characters[index] = character;
+  return characters.join('');
+}
+
 async function convertDocxTextFallback(bytes:Buffer,output:string){
  const extracted=await mammoth.extractRawText({buffer:bytes});
  const text=(extracted.value||'').trim()||'No readable text was found in the uploaded Word document.';
@@ -37,7 +63,7 @@ async function convertDocxTextFallback(bytes:Buffer,output:string){
  const pageSize:[number,number]=[595.28,841.89],margin=52,fontSize=10.5,lineHeight=15,maxWidth=pageSize[0]-margin*2;
  let page=pdf.addPage(pageSize),y=pageSize[1]-margin;
  const addLine=(line:string)=>{if(y<margin+lineHeight){page=pdf.addPage(pageSize);y=pageSize[1]-margin}page.drawText(line||' ',{x:margin,y,size:fontSize,font,color:rgb(.05,.08,.07)});y-=lineHeight};
- const wrap=(line:string)=>{if(!line.trim())return [''];const words=line.replace(/\t/g,'    ').split(/\s+/);const lines:string[]=[];let current='';for(const word of words){const candidate=current?`${current} ${word}`:word;if(font.widthOfTextAtSize(candidate,fontSize)<=maxWidth)current=candidate;else{if(current)lines.push(current);if(font.widthOfTextAtSize(word,fontSize)<=maxWidth)current=word;else{let chunk='';for(const ch of word){if(font.widthOfTextAtSize(chunk+ch,fontSize)>maxWidth){lines.push(chunk);chunk=ch}else chunk+=ch}current=chunk}}}if(current)lines.push(current);return lines};
+ const wrap=(line:string)=>{if(!line.trim())return [''];const visualLine=shapeRtlForPdf(line);const words=visualLine.replace(/\t/g,'    ').split(/\s+/);const lines:string[]=[];let current='';for(const word of words){const candidate=current?`${current} ${word}`:word;if(font.widthOfTextAtSize(candidate,fontSize)<=maxWidth)current=candidate;else{if(current)lines.push(current);if(font.widthOfTextAtSize(word,fontSize)<=maxWidth)current=word;else{let chunk='';for(const ch of word){if(font.widthOfTextAtSize(chunk+ch,fontSize)>maxWidth){lines.push(chunk);chunk=ch}else chunk+=ch}current=chunk}}}if(current)lines.push(current);return lines};
  for(const raw of text.slice(0,250000).split(/\r?\n/))for(const line of wrap(raw))addLine(line);
  const out=await pdf.save();await fs.writeFile(output,out,{flag:'wx'});return Buffer.from(out);
 }

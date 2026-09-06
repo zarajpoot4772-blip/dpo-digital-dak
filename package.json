@@ -13,7 +13,9 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.3.8",
     "@pdf-lib/fontkit": "^1.1.1",
+    "arabic-persian-reshaper": "^1.0.1",
     "bcryptjs": "^3.0.2",
+    "bidi-js": "^1.0.3",
     "fflate": "^0.8.3",
     "mammoth": "^1.12.1",
     "next": "^16.3.1",
@@ -33,5 +35,8 @@
     "@types/react-dom": "^19.1.7",
     "cross-env": "^10.1.0",
     "typescript": "^5.9.2"
+  },
+  "overrides": {
+    "@xmldom/xmldom": "^0.9.12"
   }
 }
