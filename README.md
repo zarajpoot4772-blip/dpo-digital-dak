@@ -13,6 +13,10 @@ Open `http://localhost:3000`.
 
 `npm run dev` uses Windows-compatible atomic database snapshots at `data/pglite-data.tar` plus private files under `storage/`. The snapshot is loaded automatically after restart. The Arena-only `npm run preview` command uses temporary in-memory data and should not be used for a local office installation. On a production managed host, the app automatically moves its PGlite snapshot and private storage to a persistent runtime directory under the host user's home directory, outside the deployed source tree, so a code redeployment does not replace the data.
 
+### Automated checks
+
+Every push and pull request runs through `.github/workflows/ci.yml`: `npm ci`, TypeScript typecheck, a production `next build`, and the live API smoke suite (`npm run test:smoke` against the in-memory preview server), which now also verifies that a scanned image upload is OCR-indexed and keyword-searchable.
+
 ### Prototype accounts
 
 | Role | Username | Password |
@@ -42,7 +46,7 @@ These demo accounts and sample Dak data are for local development/temporary prev
 13. DPO/Admin can reassign an active Dak to another authorized user. Assigned Officers and Branch Heads can send it back to the active DPO with optional remarks; returned files are visible in the Sent Back queue and remain auditable.
 14. Authorized users can add up to 10 supporting PDF/DOCX/JPG/PNG files to an active Dak from File details. Originals and DOCX-generated supporting PDF previews are stored as separate immutable document versions and the upload is audited.
 15. PDF/image previews and permitted download/print copies use authenticated role-based access. Admin, DPO and Clerk have download/print copy controls; Officer and Branch Head receive view-only access, while source/approval access remains restricted. The original file is returned without a watermark and remains immutable.
-16. Keyword search includes indexed PDF text and DOCX text. Admin can manually rebuild the index from Advanced Search when needed. Image-only scans remain searchable by Dak metadata until an approved OCR engine is integrated.
+16. Keyword search includes indexed PDF text, DOCX text and OCR text from scanned JPG/PNG documents. The OCR engine and its English/Urdu language models run locally inside Node.js from installed packages — no cloud service sees the documents — and scanned text is searchable immediately after upload. If OCR cannot run (for example on a machine without the language data), the scan still uploads normally and remains searchable by Dak metadata; Admin can manually rebuild/refresh the index from Advanced Search when needed, and unindexed image documents are retried automatically on each rebuild.
 17. The login screen and portal include an English/Urdu language toggle. The choice is stored in the browser and keeps the document review layout stable.
 18. The dashboard includes pending-ageing indicators, oldest-active-file shortcuts and branch workload bars. Counts remain server-scoped for Officer and Branch Head accounts.
 19. New Dak supports an optional due date. Dashboard, Advanced Search and Reports show due-date filters, overdue counts and days remaining without making the due date mandatory.

@@ -97,6 +97,7 @@ Admin deliberately does not inherit DPO approval authority.
 
 - PGlite is for a single-process local prototype; it is not the production database.
 - The controlled approval PDF is not a legal PKI signature.
-- Malware scanning, full OCR for image-only scans, independent off-site backups and formal PKI signing are not yet implemented; password lifecycle, optional TOTP, password reset and CSV reports are available in the prototype.
+- Malware scanning, independent off-site backups and formal PKI signing are not yet implemented; password lifecycle, optional TOTP, password reset, CSV reports and scanned-image OCR are available in the prototype.
+- Post-review update: scanned-image OCR (English and Urdu) for JPG/PNG Dak documents was integrated after this review. The OCR engine and language models run locally in Node.js from installed packages (`tesseract.js`, `@tesseract.js-data/eng`, `@tesseract.js-data/urd`); earlier statements in this document that OCR was "not yet implemented" describe the state at review time.
 - The Arena preview uses temporary in-memory data and preview-specific session transport. Local `npm run dev` uses normal cookie authentication and persistent prototype storage.
 - Production deployment must not use seeded demo passwords.
