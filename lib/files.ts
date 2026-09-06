@@ -117,7 +117,9 @@ export async function saveOriginal(file: File, diary: string) {
   if (file.size < 8) throw new Error('Uploaded file is empty or invalid');
   const bytes = Buffer.from(await file.arrayBuffer());
   if (!validSignature(bytes, normalizedType)) throw new Error('File content does not match its declared format');
-  const searchText = await extractDocumentText(bytes, normalizedType);
+  const extracted = await extractDocumentText(bytes, normalizedType);
+  const searchText = extracted.text;
+  const textIndexed = extracted.completed;
   const sha = crypto.createHash('sha256').update(bytes).digest('hex');
   const ext = normalizedType === 'application/pdf' ? '.pdf' : normalizedType === 'image/png' ? '.png' : normalizedType===DOCX_MIME?'.docx':'.jpg';
   const safeDiary = diary.replace(/[^a-zA-Z0-9-]/g, '-').slice(0, 80);
@@ -125,12 +127,12 @@ export async function saveOriginal(file: File, diary: string) {
   const storedPath = path.join(storageRoot, 'originals', stored);
   await fs.writeFile(storedPath, bytes, { flag: 'wx' });
   const originalName=path.basename(file.name).replace(/[\r\n]/g, '').slice(0, 180) || `document${ext}`;
-  let converted:undefined|{stored:string;storedPath:string;size:number;sha:string;type:string;original:string;searchText:string};
+  let converted:undefined|{stored:string;storedPath:string;size:number;sha:string;type:string;original:string;searchText:string;textIndexed:boolean};
   if(isDocx){
    const convertedStored=`DAAK-${safeDiary}-${id}-converted.pdf`;const convertedPath=path.join(storageRoot,'derived',convertedStored);
-   try{const pdfBytes=await convertDocxToPdf(bytes,storedPath,convertedPath);converted={stored:convertedStored,storedPath:convertedPath,size:pdfBytes.length,sha:crypto.createHash('sha256').update(pdfBytes).digest('hex'),type:'application/pdf',original:originalName.replace(/\.docx$/i,'')+'-converted.pdf',searchText}}catch(error){await removeStoredFile(storedPath);await removeStoredFile(convertedPath);throw new Error(`Word to PDF conversion failed: ${error instanceof Error?error.message:'unknown error'}`)}
+   try{const pdfBytes=await convertDocxToPdf(bytes,storedPath,convertedPath);converted={stored:convertedStored,storedPath:convertedPath,size:pdfBytes.length,sha:crypto.createHash('sha256').update(pdfBytes).digest('hex'),type:'application/pdf',original:originalName.replace(/\.docx$/i,'')+'-converted.pdf',searchText,textIndexed:true}}catch(error){await removeStoredFile(storedPath);await removeStoredFile(convertedPath);throw new Error(`Word to PDF conversion failed: ${error instanceof Error?error.message:'unknown error'}`)}
   }
-  return {stored,storedPath,size:bytes.length,sha,type:normalizedType,original:originalName,searchText,converted};
+  return {stored,storedPath,size:bytes.length,sha,type:normalizedType,original:originalName,searchText,textIndexed,converted};
 }
 
 export async function removeStoredFile(filePath: string) {

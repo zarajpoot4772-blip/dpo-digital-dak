@@ -37,7 +37,9 @@ if (isProduction) {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['*.e2b.app'],
-  serverExternalPackages: ['@electric-sql/pglite'],
+  // tesseract.js must run from node_modules at runtime: it locates its worker
+  // script and WASM core relative to its own __dirname.
+  serverExternalPackages: ['@electric-sql/pglite', 'tesseract.js'],
   async headers() {
     return [
       { source: '/(.*)', headers: securityHeaders },

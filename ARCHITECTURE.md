@@ -111,7 +111,7 @@ The selected MVP mode is a **controlled approval stamp**. It provides workflow e
 - Local prototype storage is single-process PGlite. `DATABASE_URL` enables the pooled `pg` adapter for managed PostgreSQL; credential handling, TLS termination and DB-side hardening remain deployment work.
 - Login lockout is now stored in the prototype database per username/source-IP key; production should use managed PostgreSQL with a shared lockout policy.
 - Controlled stamp is not PKI.
-- No OCR, email/SMS, antivirus quarantine, Excel/PDF report export or multi-office tenancy yet; restore and CSV reporting are available in the prototype.
+- Scanned-image OCR (English/Urdu) is integrated locally via tesseract.js with npm-installed language data; email/SMS, antivirus quarantine, Excel/PDF report export and multi-office tenancy are not yet included; restore and CSV reporting are available in the prototype.
 - Device/IP evidence is best-effort behind a trusted reverse proxy.
 - Durable account lockout and an approved password-recovery policy remain future production work; first-login change is implemented in the prototype, while periodic expiry and password-history reuse restrictions are intentionally disabled.
 
