@@ -655,3 +655,31 @@ a {
     padding: 16px;
   }
 }
+
+.result .fallback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 13px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.result .fallback a {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.result .fallback a:hover {
+  color: var(--brand-dark);
+}
+
+.result .fallback-hint {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}

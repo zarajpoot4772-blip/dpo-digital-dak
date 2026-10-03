@@ -12,6 +12,37 @@ type Result = {
   ms: number;
 };
 
+/**
+ * Trigger a real file download.
+ *
+ * Returns false when the browser refused — most commonly because the page is
+ * running inside a sandboxed preview iframe that was not granted the
+ * `allow-downloads` permission, in which case the click silently does nothing.
+ */
+function triggerDownload(url: string, filename: string): boolean {
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.rel = "noopener";
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function inIframe(): boolean {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -36,7 +67,15 @@ export default function ConverterPanel({ tool }: { tool: Tool }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [embedded, setEmbedded] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [pageUrl, setPageUrl] = useState("");
+
+  useEffect(() => {
+    setEmbedded(inIframe());
+    setPageUrl(window.location.href);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -131,13 +170,11 @@ export default function ConverterPanel({ tool }: { tool: Tool }) {
       const note = decodeURIComponent(response.headers.get("X-Convert-Note") ?? "");
       const ms = Number(response.headers.get("X-Convert-Ms") ?? 0);
 
-      setResult({
-        url: URL.createObjectURL(blob),
-        filename,
-        note,
-        size: blob.size,
-        ms,
-      });
+      const url = URL.createObjectURL(blob);
+      setResult({ url, filename, note, size: blob.size, ms });
+      // Start the download immediately — the click that began the conversion
+      // still counts as user activation, so browsers allow it.
+      triggerDownload(url, filename);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Something went wrong.");
     } finally {
@@ -323,9 +360,40 @@ export default function ConverterPanel({ tool }: { tool: Tool }) {
             {result.ms ? ` · ${(result.ms / 1000).toFixed(1)}s` : ""}
             {result.note ? ` · ${result.note}` : ""}
           </p>
-          <a className="btn" href={result.url} download={result.filename}>
+          <a
+            className="btn"
+            href={result.url}
+            download={result.filename}
+            onClick={(event) => {
+              event.preventDefault();
+              triggerDownload(result.url, result.filename);
+            }}
+          >
             ↓ Download {result.filename}
           </a>
+
+          <div className="fallback">
+            <span>Download didn’t start?</span>
+            <a href={result.url} target="_blank" rel="noopener noreferrer">
+              Open the file in a new tab
+            </a>
+            {embedded && (
+              <>
+                <span aria-hidden="true">·</span>
+                <a href={pageUrl} target="_blank" rel="noopener noreferrer">
+                  Open this tool in a full browser tab
+                </a>
+              </>
+            )}
+          </div>
+
+          {embedded && (
+            <p className="fallback-hint">
+              This page is running inside a preview frame, and browsers block
+              file downloads from sandboxed frames. Opening the tool in a normal
+              browser tab makes the download button work normally.
+            </p>
+          )}
         </div>
       )}
 

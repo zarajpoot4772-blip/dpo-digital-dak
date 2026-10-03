@@ -75,12 +75,18 @@ export async function POST(
 
     // Everything is produced in memory — no uploaded bytes are written to disk.
     const body = new Uint8Array(result.buffer);
+
+    // RFC 6266: a plain ASCII fallback plus the real UTF-8 name. Leaving the
+    // fallback percent-encoded would make browsers save "my%20file.pdf".
+    const asciiName =
+      result.filename.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_") ||
+      "converted";
+
     return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": result.contentType,
-        "Content-Length": String(body.byteLength),
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(result.filename).replace(/'/g, "%27")}"; filename*=UTF-8''${encodeURIComponent(result.filename)}`,
+        "Content-Disposition": `attachment; filename="${asciiName}"; filename*=UTF-8''${encodeURIComponent(result.filename)}`,
         "X-Converted-Filename": encodeURIComponent(result.filename),
         "X-Convert-Note": encodeURIComponent(result.note ?? ""),
         "X-Convert-Ms": String(elapsed),
